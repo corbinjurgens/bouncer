@@ -1,11 +1,11 @@
 <?php
 
-namespace Silber\Bouncer\Console;
+namespace Corbinjurgens\Bouncer\Console;
 
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 
 class CleanCommand extends Command
 {

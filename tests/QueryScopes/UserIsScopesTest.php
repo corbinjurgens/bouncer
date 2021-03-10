@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Tests\QueryScopes;
+namespace Corbinjurgens\Bouncer\Tests\QueryScopes;
 
-use Silber\Bouncer\Tests\User;
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Tests\BaseTestCase;
+use Corbinjurgens\Bouncer\Tests\User;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Tests\BaseTestCase;
 
 class UserIsScopesTest extends BaseTestCase
 {

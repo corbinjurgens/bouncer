@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Role;
 
 class AuthorizableTest extends BaseTestCase
 {

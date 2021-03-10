@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Database;
+namespace Corbinjurgens\Bouncer\Database;
 
-use Silber\Bouncer\Database\Concerns\HasRoles;
-use Silber\Bouncer\Database\Concerns\HasAbilities;
+use Corbinjurgens\Bouncer\Database\Concerns\HasRoles;
+use Corbinjurgens\Bouncer\Database\Concerns\HasAbilities;
 
 trait HasRolesAndAbilities
 {

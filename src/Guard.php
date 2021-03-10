@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +14,7 @@ class Guard
     /**
      * The guard's clipboard instance.
      *
-     * @var \Silber\Bouncer\Contracts\Clipboard
+     * @var \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     protected $clipboard;
 
@@ -30,7 +30,7 @@ class Guard
     /**
      * Create a new guard instance.
      *
-     * @param \Silber\Bouncer\Contracts\Clipboard  $clipboard
+     * @param \Corbinjurgens\Bouncer\Contracts\Clipboard  $clipboard
      */
     public function __construct(Contracts\Clipboard $clipboard)
     {
@@ -40,7 +40,7 @@ class Guard
     /**
      * Get the clipboard instance.
      *
-     * @return \Silber\Bouncer\Contracts\Clipboard
+     * @return \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     public function getClipboard()
     {
@@ -50,7 +50,7 @@ class Guard
     /**
      * Set the clipboard instance.
      *
-     * @param  \Silber\Bouncer\Contracts\Clipboard  $clipboard
+     * @param  \Corbinjurgens\Bouncer\Contracts\Clipboard  $clipboard
      * @return $this
      */
     public function setClipboard(Contracts\Clipboard $clipboard)

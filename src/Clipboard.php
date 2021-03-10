@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use Illuminate\Database\Eloquent\Model;
-use Silber\Bouncer\Database\Queries\Abilities;
+use Corbinjurgens\Bouncer\Database\Queries\Abilities;
 
 class Clipboard extends BaseClipboard
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Conductors;
+namespace Corbinjurgens\Bouncer\Conductors;
 
-use Silber\Bouncer\Helpers;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Database\Models;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -44,14 +44,22 @@ class SyncsRolesAndAbilities
             $this->authority->roles()
         );
     }
-
+	/**
+	 * 
+	 * Custom Model to scope to certain model sync only. Model intance or model string. Best used as string or class tho // edited
+	 */
+    protected $scope_model;
+	public function whereHas($scope_model = null){
+		$this->scope_model = $scope_model;
+		return $this;
+	}
     /**
      * Sync the provided abilities to the authority.
      *
      * @param  iterable  $abilities
      * @return void
      */
-    public function abilities($abilities)
+    public function abilities($abilities, $scope_model = null)
     {
         $this->syncAbilities($abilities);
     }
@@ -76,10 +84,28 @@ class SyncsRolesAndAbilities
      */
     protected function syncAbilities($abilities, $options = ['forbidden' => false])
     {
+		$scope_model = $this->scope_model;// edited
+		
         $abilityKeys = $this->getAbilityIds($abilities);
         $authority = $this->getAuthority();
         $relation = $authority->abilities();
-
+		
+		/**
+		 * Added CJ
+		 * Scope to a certain model, so syncing only within a 
+		 */
+		$relation->when($scope_model, function($query) use ($scope_model){
+				 $model = $scope_model;
+				 if (is_string($scope_model)){
+					 $model = new $scope_model();
+				 }
+				 if ($model->exists){
+					 $query->where('entity_id', $model->getKey());
+				 }
+				 $query->where('entity_type', $model->getMorphClass());
+				 
+			 });
+			 
         $this->newPivotQuery($relation)
              ->where('entity_type', $authority->getMorphClass())
              ->whereNotIn($relation->getRelatedPivotKeyName(), $abilityKeys)

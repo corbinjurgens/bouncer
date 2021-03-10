@@ -1,13 +1,13 @@
 <?php
 
-namespace Silber\Bouncer\Conductors\Lazy;
+namespace Corbinjurgens\Bouncer\Conductors\Lazy;
 
 class HandlesOwnership
 {
     /**
      * The conductor handling the permission.
      *
-     * @var \Silber\Bouncer\Conductors\Concerns\ConductsAbilities
+     * @var \Corbinjurgens\Bouncer\Conductors\Concerns\ConductsAbilities
      */
     protected $conductor;
 
@@ -35,7 +35,7 @@ class HandlesOwnership
     /**
      * Constructor.
      *
-     * @param \Silber\Bouncer\Conductors\Concerns\ConductsAbilities  $conductor
+     * @param \Corbinjurgens\Bouncer\Conductors\Concerns\ConductsAbilities  $conductor
      * @param string|object  $model
      * @param array  $attributes
      */

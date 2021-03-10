@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Constraints;
+namespace Corbinjurgens\Bouncer\Constraints;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -55,7 +55,7 @@ interface Constrainer
     /**
      * Determine whether the given constrainer is equal to this object.
      *
-     * @param  \Silber\Bouncer\Constraints\Constrainer  $constrainer
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constrainer  $constrainer
      * @return bool
      */
     public function equals(Constrainer $constrainer);

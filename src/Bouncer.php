@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use RuntimeException;
 use Illuminate\Cache\NullStore;
@@ -10,15 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
-use Silber\Bouncer\Contracts\Scope;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Contracts\Scope;
+use Corbinjurgens\Bouncer\Database\Models;
 
 class Bouncer
 {
     /**
      * The bouncer guard instance.
      *
-     * @var \Silber\Bouncer\Guard
+     * @var \Corbinjurgens\Bouncer\Guard
      */
     protected $guard;
 
@@ -32,7 +32,7 @@ class Bouncer
     /**
      * Constructor.
      *
-     * @param \Silber\Bouncer\Guard  $guard
+     * @param \Corbinjurgens\Bouncer\Guard  $guard
      */
     public function __construct(Guard $guard)
     {
@@ -54,7 +54,7 @@ class Bouncer
      * Create a bouncer factory instance.
      *
      * @param  mixed  $user
-     * @return \Silber\Bouncer\Factory
+     * @return \Corbinjurgens\Bouncer\Factory
      */
     public static function make($user = null)
     {
@@ -65,7 +65,7 @@ class Bouncer
      * Start a chain, to allow the given authority an ability.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string  $authority
-     * @return \Silber\Bouncer\Conductors\GivesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\GivesAbilities
      */
     public function allow($authority)
     {
@@ -75,7 +75,7 @@ class Bouncer
     /**
      * Start a chain, to allow everyone an ability.
      *
-     * @return \Silber\Bouncer\Conductors\GivesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\GivesAbilities
      */
     public function allowEveryone()
     {
@@ -86,7 +86,7 @@ class Bouncer
      * Start a chain, to disallow the given authority an ability.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string  $authority
-     * @return \Silber\Bouncer\Conductors\RemovesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesAbilities
      */
     public function disallow($authority)
     {
@@ -96,7 +96,7 @@ class Bouncer
     /**
      * Start a chain, to disallow everyone the an ability.
      *
-     * @return \Silber\Bouncer\Conductors\RemovesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesAbilities
      */
     public function disallowEveryone()
     {
@@ -107,7 +107,7 @@ class Bouncer
      * Start a chain, to forbid the given authority an ability.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string  $authority
-     * @return \Silber\Bouncer\Conductors\GivesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\GivesAbilities
      */
     public function forbid($authority)
     {
@@ -117,7 +117,7 @@ class Bouncer
     /**
      * Start a chain, to forbid everyone an ability.
      *
-     * @return \Silber\Bouncer\Conductors\GivesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\GivesAbilities
      */
     public function forbidEveryone()
     {
@@ -128,7 +128,7 @@ class Bouncer
      * Start a chain, to unforbid the given authority an ability.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string  $authority
-     * @return \Silber\Bouncer\Conductors\RemovesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesAbilities
      */
     public function unforbid($authority)
     {
@@ -138,7 +138,7 @@ class Bouncer
     /**
      * Start a chain, to unforbid an ability from everyone.
      *
-     * @return \Silber\Bouncer\Conductors\RemovesAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesAbilities
      */
     public function unforbidEveryone()
     {
@@ -148,8 +148,8 @@ class Bouncer
     /**
      * Start a chain, to assign the given role to a model.
      *
-     * @param  \Silber\Bouncer\Database\Role|\Illuminate\Support\Collection|string  $roles
-     * @return \Silber\Bouncer\Conductors\AssignsRoles
+     * @param  \Corbinjurgens\Bouncer\Database\Role|\Illuminate\Support\Collection|string  $roles
+     * @return \Corbinjurgens\Bouncer\Conductors\AssignsRoles
      */
     public function assign($roles)
     {
@@ -159,8 +159,8 @@ class Bouncer
     /**
      * Start a chain, to retract the given role from a model.
      *
-     * @param  \Illuminate\Support\Collection|\Silber\Bouncer\Database\Role|string  $roles
-     * @return \Silber\Bouncer\Conductors\RemovesRoles
+     * @param  \Illuminate\Support\Collection|\Corbinjurgens\Bouncer\Database\Role|string  $roles
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesRoles
      */
     public function retract($roles)
     {
@@ -171,7 +171,7 @@ class Bouncer
      * Start a chain, to sync roles/abilities for the given authority.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string  $authority
-     * @return \Silber\Bouncer\Conductors\SyncsRolesAndAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\SyncsRolesAndAbilities
      */
     public function sync($authority)
     {
@@ -182,7 +182,7 @@ class Bouncer
      * Start a chain, to check if the given authority has a certain role.
      *
      * @param  \Illuminate\Database\Eloquent\Model  $authority
-     * @return \Silber\Bouncer\Conductors\ChecksRoles
+     * @return \Corbinjurgens\Bouncer\Conductors\ChecksRoles
      */
     public function is(Model $authority)
     {
@@ -192,7 +192,7 @@ class Bouncer
     /**
      * Get the clipboard instance.
      *
-     * @return \Silber\Bouncer\Contracts\Clipboard
+     * @return \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     public function getClipboard()
     {
@@ -204,7 +204,7 @@ class Bouncer
      *
      * Will also register the given clipboard with the container.
      *
-     * @param  \Silber\Bouncer\Contracts\Clipboard
+     * @param  \Corbinjurgens\Bouncer\Contracts\Clipboard
      * @return $this
      */
     public function setClipboard(Contracts\Clipboard $clipboard)
@@ -434,7 +434,7 @@ class Bouncer
      * Get an instance of the role model.
      *
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Role
+     * @return \Corbinjurgens\Bouncer\Database\Role
      */
     public function role(array $attributes = [])
     {
@@ -445,7 +445,7 @@ class Bouncer
      * Get an instance of the ability model.
      *
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Ability
+     * @return \Corbinjurgens\Bouncer\Database\Ability
      */
     public function ability(array $attributes = [])
     {
@@ -488,6 +488,12 @@ class Bouncer
     public function useAbilityModel($model)
     {
         Models::setAbilitiesModel($model);
+
+        return $this;
+    }
+    public function usePermissionModel($model)
+    {
+        Models::setPermissionsModel($model);
 
         return $this;
     }
@@ -534,7 +540,7 @@ class Bouncer
     /**
      * Get the model scoping instance.
      *
-     * @param  \Silber\Bouncer\Contracts\Scope|null  $scope
+     * @param  \Corbinjurgens\Bouncer\Contracts\Scope|null  $scope
      * @return mixed
      */
     public function scope(Scope $scope = null)

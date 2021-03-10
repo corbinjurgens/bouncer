@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Constraints;
+namespace Corbinjurgens\Bouncer\Constraints;
 
-use Silber\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Helpers;
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,7 +37,7 @@ abstract class Constraint implements Constrainer
      * @param  string  $column
      * @param  mixed  $operator
      * @param  mixed  $value
-     * @return \Silber\Bouncer\Constraints\ValueConstraint
+     * @return \Corbinjurgens\Bouncer\Constraints\ValueConstraint
      */
     public static function where($column, $operator, $value = null)
     {
@@ -56,7 +56,7 @@ abstract class Constraint implements Constrainer
      * @param  string  $column
      * @param  mixed  $operator
      * @param  mixed  $value
-     * @return \Silber\Bouncer\Constraints\ValueConstraint
+     * @return \Corbinjurgens\Bouncer\Constraints\ValueConstraint
      */
     public static function orWhere($column, $operator, $value = null)
     {
@@ -69,7 +69,7 @@ abstract class Constraint implements Constrainer
      * @param  string  $a
      * @param  mixed  $operator
      * @param  mixed  $b
-     * @return \Silber\Bouncer\Constraints\ColumnConstraint
+     * @return \Corbinjurgens\Bouncer\Constraints\ColumnConstraint
      */
     public static function whereColumn($a, $operator, $b = null)
     {
@@ -87,7 +87,7 @@ abstract class Constraint implements Constrainer
      * @param  string  $a
      * @param  mixed  $operator
      * @param  mixed  $b
-     * @return \Silber\Bouncer\Constraints\ColumnConstraint
+     * @return \Corbinjurgens\Bouncer\Constraints\ColumnConstraint
      */
     public static function orWhereColumn($a, $operator, $b = null)
     {
@@ -136,7 +136,7 @@ abstract class Constraint implements Constrainer
     /**
      * Determine whether the given constrainer is equal to this object.
      *
-     * @param  \Silber\Bouncer\Constraints\Constrainer  $constrainer
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constrainer  $constrainer
      * @return bool
      */
     public function equals(Constrainer $constrainer)

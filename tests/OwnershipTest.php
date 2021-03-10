@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Ability;
 
 class OwnershipTest extends BaseTestCase
 {

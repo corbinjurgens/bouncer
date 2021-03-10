@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Queries\Abilities;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Queries\Abilities;
 
 use InvalidArgumentException;
 use Illuminate\Support\Collection;
@@ -106,6 +106,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
      */
     public function getAbilities(Model $authority, $allowed = true)
     {
+		// TODO add pivot
         return Abilities::forAuthority($authority, $allowed)->get();
     }
 
@@ -117,6 +118,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
      */
     public function getForbiddenAbilities(Model $authority)
     {
+		// TODO add pivot
         return $this->getAbilities($authority, false);
     }
 

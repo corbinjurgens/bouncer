@@ -1,12 +1,12 @@
 <?php
 
-namespace Silber\Bouncer\Database\Concerns;
+namespace Corbinjurgens\Bouncer\Database\Concerns;
 
-use Silber\Bouncer\Helpers;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Titles\RoleTitle;
-use Silber\Bouncer\Database\Scope\TenantScope;
-use Silber\Bouncer\Database\Queries\Roles as RolesQuery;
+use Corbinjurgens\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Titles\RoleTitle;
+use Corbinjurgens\Bouncer\Database\Scope\TenantScope;
+use Corbinjurgens\Bouncer\Database\Queries\Roles as RolesQuery;
 
 use App\User;
 use Illuminate\Support\Arr;

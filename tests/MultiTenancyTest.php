@@ -1,12 +1,12 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Ability;
-use Silber\Bouncer\Database\Scope\Scope;
-use Silber\Bouncer\Contracts\Scope as ScopeContract;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Scope\Scope;
+use Corbinjurgens\Bouncer\Contracts\Scope as ScopeContract;
 
 use Illuminate\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;

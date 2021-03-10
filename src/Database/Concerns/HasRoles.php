@@ -1,16 +1,16 @@
 <?php
 
-namespace Silber\Bouncer\Database\Concerns;
+namespace Corbinjurgens\Bouncer\Database\Concerns;
 
 use Illuminate\Container\Container;
 
-use Silber\Bouncer\Helpers;
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Contracts\Clipboard;
-use Silber\Bouncer\Conductors\AssignsRoles;
-use Silber\Bouncer\Conductors\RemovesRoles;
-use Silber\Bouncer\Database\Queries\Roles as RolesQuery;
+use Corbinjurgens\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Contracts\Clipboard;
+use Corbinjurgens\Bouncer\Conductors\AssignsRoles;
+use Corbinjurgens\Bouncer\Conductors\RemovesRoles;
+use Corbinjurgens\Bouncer\Database\Queries\Roles as RolesQuery;
 
 trait HasRoles
 {

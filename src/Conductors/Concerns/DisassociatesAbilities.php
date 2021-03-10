@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Conductors\Concerns;
+namespace Corbinjurgens\Bouncer\Conductors\Concerns;
 
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Ability;
 
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +20,7 @@ trait DisassociatesAbilities
      * @param  mixed  $abilities
      * @param  \Illuminate\Database\Eloquent\Model|string|null  $entity
      * @param  array  $attributes
-     * @return bool|\Silber\Bouncer\Conductors\Lazy\ConductsAbilities
+     * @return bool|\Corbinjurgens\Bouncer\Conductors\Lazy\ConductsAbilities
      */
     public function to($abilities, $entity = null, array $attributes = [])
     {

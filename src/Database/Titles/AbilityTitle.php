@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Database\Titles;
+namespace Corbinjurgens\Bouncer\Database\Titles;
 
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\model;

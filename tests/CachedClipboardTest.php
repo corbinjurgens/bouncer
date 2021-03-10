@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\CachedClipboard;
+use Corbinjurgens\Bouncer\CachedClipboard;
 
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Database\Eloquent\Model;

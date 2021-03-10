@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Database;
+namespace Corbinjurgens\Bouncer\Database;
 
 use Illuminate\Database\Eloquent\Model;
 

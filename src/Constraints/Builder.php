@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Constraints;
+namespace Corbinjurgens\Bouncer\Constraints;
 
 use Closure;
 use Illuminate\Support\Collection;
@@ -10,7 +10,7 @@ class Builder
     /**
      * The list of constraints.
      *
-     * @var \Illuminate\Support\Collection<\Silber\Bouncer\Constraints\Constraint|static>
+     * @var \Illuminate\Support\Collection<\Corbinjurgens\Bouncer\Constraints\Constraint|static>
      */
     protected $constraints;
 
@@ -96,7 +96,7 @@ class Builder
     /**
      * Build the compiled list of constraints.
      *
-     * @return \Silber\Bouncer\Constraints\Constrainer
+     * @return \Corbinjurgens\Bouncer\Constraints\Constrainer
      */
     public function build()
     {
@@ -126,7 +126,7 @@ class Builder
     /**
      * Add a constraint to the list of constraints.
      *
-     * @param  \Silber\Bouncer\Constraints\Constrainer  $constraint
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constrainer  $constraint
      * @return $this
      */
     protected function addConstraint($constraint)

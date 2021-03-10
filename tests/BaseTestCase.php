@@ -1,17 +1,17 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
 require __DIR__.'/../migrations/create_bouncer_tables.php';
 
 use CreateBouncerTables;
-use Silber\Bouncer\Guard;
-use Silber\Bouncer\Bouncer;
-use Silber\Bouncer\Clipboard;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\HasRolesAndAbilities;
-use Silber\Bouncer\Database\Concerns\Authorizable;
-use Silber\Bouncer\Contracts\Clipboard as ClipboardContract;
+use Corbinjurgens\Bouncer\Guard;
+use Corbinjurgens\Bouncer\Bouncer;
+use Corbinjurgens\Bouncer\Clipboard;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\HasRolesAndAbilities;
+use Corbinjurgens\Bouncer\Database\Concerns\Authorizable;
+use Corbinjurgens\Bouncer\Contracts\Clipboard as ClipboardContract;
 
 use PHPUnit\Framework\TestCase;
 use Illuminate\Auth\Access\Gate;
@@ -28,7 +28,7 @@ abstract class BaseTestCase extends TestCase
     /**
      * The clipboard instance.
      *
-     * @var \Silber\Bouncer\Contracts\Clipboard
+     * @var \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     protected $clipboard;
 
@@ -136,7 +136,7 @@ abstract class BaseTestCase extends TestCase
      * Get a bouncer instance.
      *
      * @param  \Illuminate\Database\Eloquent\Model|null  $user
-     * @return \Silber\Bouncer\Bouncer
+     * @return \Corbinjurgens\Bouncer\Bouncer
      */
     protected function bouncer(Eloquent $authority = null)
     {

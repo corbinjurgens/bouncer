@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Database\Scope;
+namespace Corbinjurgens\Bouncer\Database\Scope;
 
 use Illuminate\Support\Collection;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Scope as EloquentScope;

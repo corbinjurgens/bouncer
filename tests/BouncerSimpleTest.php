@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
 use Exception;
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Ability;
 
 class BouncerSimpleTest extends BaseTestCase
 {
@@ -402,7 +402,7 @@ class BouncerSimpleTest extends BaseTestCase
      * Create a new role with the given name.
      *
      * @param  string  $name
-     * @return \Silber\Bouncer\Database\Role
+     * @return \Corbinjurgens\Bouncer\Database\Role
      */
     protected function role($name)
     {

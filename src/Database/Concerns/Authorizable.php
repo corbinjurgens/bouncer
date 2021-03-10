@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Database\Concerns;
+namespace Corbinjurgens\Bouncer\Database\Concerns;
 
 use Illuminate\Container\Container;
-use Silber\Bouncer\Contracts\Clipboard;
+use Corbinjurgens\Bouncer\Contracts\Clipboard;
 
 trait Authorizable
 {

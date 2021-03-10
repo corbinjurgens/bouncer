@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Conductors;
+namespace Corbinjurgens\Bouncer\Conductors;
 
 class RemovesAbilities
 {

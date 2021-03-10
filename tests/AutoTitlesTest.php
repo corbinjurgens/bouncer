@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Ability;
 
 class AutoTitlesTest extends BaseTestCase
 {

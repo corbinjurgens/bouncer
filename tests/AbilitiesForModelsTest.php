@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Ability;
 use Illuminate\Database\Eloquent\Model;
 
 class AbilitiesForModelsTest extends BaseTestCase

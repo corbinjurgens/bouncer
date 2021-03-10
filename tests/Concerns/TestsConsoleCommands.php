@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Tests\Concerns;
+namespace Corbinjurgens\Bouncer\Tests\Concerns;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\OutputStyle;

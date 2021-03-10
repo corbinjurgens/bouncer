@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Constraints;
+namespace Corbinjurgens\Bouncer\Constraints;
 
-use Silber\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Helpers;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +11,7 @@ class Group implements Constrainer
     /**
      * The list of constraints.
      *
-     * @var \Illuminate\Support\Collection<\Silber\Bouncer\Constraints\Constrainer>
+     * @var \Illuminate\Support\Collection<\Corbinjurgens\Bouncer\Constraints\Constrainer>
      */
     protected $constraints;
 
@@ -25,7 +25,7 @@ class Group implements Constrainer
     /**
      * Constructor.
      *
-     * @param iterable<\Silber\Bouncer\Constraints\Constrainer>  $constraints
+     * @param iterable<\Corbinjurgens\Bouncer\Constraints\Constrainer>  $constraints
      */
     public function __construct($constraints = [])
     {
@@ -70,7 +70,7 @@ class Group implements Constrainer
     /**
      * Add the given constraint to the list of constraints.
      *
-     * @param \Silber\Bouncer\Constraints\Constrainer  $constraint
+     * @param \Corbinjurgens\Bouncer\Constraints\Constrainer  $constraint
      */
     public function add(Constrainer $constraint)
     {
@@ -145,7 +145,7 @@ class Group implements Constrainer
     /**
      * Determine whether the given constrainer is equal to this object.
      *
-     * @param  \Silber\Bouncer\Constraints\Constrainer  $constrainer
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constrainer  $constrainer
      * @return bool
      */
     public function equals(Constrainer $constrainer)

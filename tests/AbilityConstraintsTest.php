@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Ability;
-use Silber\Bouncer\Constraints\Group;
-use Silber\Bouncer\Constraints\Constraint;
+use Corbinjurgens\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Constraints\Group;
+use Corbinjurgens\Bouncer\Constraints\Constraint;
 
 class AbilityConstraintsTest extends BaseTestCase
 {

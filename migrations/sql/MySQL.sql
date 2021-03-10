@@ -62,7 +62,8 @@ create table `permissions` (
     `entity_id` int unsigned null,
     `entity_type` varchar(255) null,
     `forbidden` tinyint(1) not null default '0',
-    `scope` int null
+    `scope` int null,
+	`options` json null
 ) default character set utf8mb4 collate utf8mb4_unicode_ci;
 
 alter table `permissions`

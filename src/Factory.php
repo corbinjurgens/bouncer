@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Cache\ArrayStore;
@@ -20,7 +20,7 @@ class Factory
     /**
      * The clipboard instance to use.
      *
-     * @var \Silber\Bouncer\Contracts\Clipboard
+     * @var \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     protected $clipboard;
 
@@ -65,7 +65,7 @@ class Factory
     /**
      * Create an instance of Bouncer.
      *
-     * @return \Silber\Bouncer\Bouncer
+     * @return \Corbinjurgens\Bouncer\Bouncer
      */
     public function create()
     {
@@ -101,7 +101,7 @@ class Factory
     /**
      * Set the instance of the clipboard to use.
      *
-     * @param  \Silber\Bouncer\Contracts\Clipboard  $clipboard
+     * @param  \Corbinjurgens\Bouncer\Contracts\Clipboard  $clipboard
      * @return $this
      */
     public function withClipboard(Contracts\Clipboard $clipboard)
@@ -166,7 +166,7 @@ class Factory
     /**
      * Get an instance of the clipboard.
      *
-     * @return \Silber\Bouncer\Guard
+     * @return \Corbinjurgens\Bouncer\Guard
      */
     protected function getGuard()
     {
@@ -176,7 +176,7 @@ class Factory
     /**
      * Get an instance of the clipboard.
      *
-     * @return \Silber\Bouncer\Contracts\Clipboard
+     * @return \Corbinjurgens\Bouncer\Contracts\Clipboard
      */
     protected function getClipboard()
     {

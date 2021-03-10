@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Ability;
 
 class TitledAbilitiesTest extends BaseTestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
@@ -67,6 +67,7 @@ class CreateBouncerTables extends Migration
             $table->string('entity_type')->nullable();
             $table->boolean('forbidden')->default(false);
             $table->integer('scope')->nullable()->index();
+            $table->json('pivot_options')->nullable();// added
 
             $table->index(
                 ['entity_id', 'entity_type', 'scope'],

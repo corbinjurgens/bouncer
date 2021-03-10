@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
 class TablePrefixTest extends BaseTestCase
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\HasRolesAndAbilities;
+use Corbinjurgens\Bouncer\Database\HasRolesAndAbilities;
 
 class CustomAuthorityTest extends BaseTestCase
 {

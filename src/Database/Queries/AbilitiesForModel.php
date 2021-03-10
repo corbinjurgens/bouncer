@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Database\Queries;
+namespace Corbinjurgens\Bouncer\Database\Queries;
 
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class AbilitiesForModel

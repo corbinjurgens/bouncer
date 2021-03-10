@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Database\Scope;
+namespace Corbinjurgens\Bouncer\Database\Scope;
 
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Contracts\Scope as ScopeContract;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Contracts\Scope as ScopeContract;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

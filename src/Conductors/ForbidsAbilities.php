@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Conductors;
+namespace Corbinjurgens\Bouncer\Conductors;
 
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class ForbidsAbilities

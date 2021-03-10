@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Database\Ability;
-use Silber\Bouncer\Console\CleanCommand;
+use Corbinjurgens\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Console\CleanCommand;
 
 class CleanCommandTest extends BaseTestCase
 {

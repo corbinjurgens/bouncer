@@ -1,14 +1,14 @@
 <?php
 
-namespace Silber\Bouncer\Tests\Unit\Constraints;
+namespace Corbinjurgens\Bouncer\Tests\Unit\Constraints;
 
-use Silber\Bouncer\Tests\User;
-use Silber\Bouncer\Tests\Account;
+use Corbinjurgens\Bouncer\Tests\User;
+use Corbinjurgens\Bouncer\Tests\Account;
 
 use PHPUnit\Framework\TestCase;
-use Silber\Bouncer\Constraints\Constraint;
-use Silber\Bouncer\Constraints\ValueConstraint;
-use Silber\Bouncer\Constraints\ColumnConstraint;
+use Corbinjurgens\Bouncer\Constraints\Constraint;
+use Corbinjurgens\Bouncer\Constraints\ValueConstraint;
+use Corbinjurgens\Bouncer\Constraints\ColumnConstraint;
 
 class ConstraintTest extends TestCase
 {
@@ -307,8 +307,8 @@ class ConstraintTest extends TestCase
     /**
      * Convert the given object to JSON, then back.
      *
-     * @param  \Silber\Bouncer\Constraints\Constraint  $group
-     * @return \Silber\Bouncer\Constraints\Constraint
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constraint  $group
+     * @return \Corbinjurgens\Bouncer\Constraints\Constraint
      */
     protected function serializeAndDeserializeConstraint(Constraint $constraint)
     {

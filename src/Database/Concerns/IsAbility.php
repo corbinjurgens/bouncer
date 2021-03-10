@@ -1,15 +1,16 @@
 <?php
 
-namespace Silber\Bouncer\Database\Concerns;
+namespace Corbinjurgens\Bouncer\Database\Concerns;
 
 use App\User;
-use Silber\Bouncer\Database\Role;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Constraints\Group;
-use Silber\Bouncer\Constraints\constrainer;
-use Silber\Bouncer\Database\Titles\AbilityTitle;
-use Silber\Bouncer\Database\Scope\TenantScope;
-use Silber\Bouncer\Database\Queries\AbilitiesForModel;
+use Corbinjurgens\Bouncer\Database\Role;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Permission;
+use Corbinjurgens\Bouncer\Constraints\Group;
+use Corbinjurgens\Bouncer\Constraints\constrainer;
+use Corbinjurgens\Bouncer\Database\Titles\AbilityTitle;
+use Corbinjurgens\Bouncer\Database\Scope\TenantScope;
+use Corbinjurgens\Bouncer\Database\Queries\AbilitiesForModel;
 
 trait IsAbility
 {
@@ -69,7 +70,7 @@ trait IsAbility
     /**
      * Get the ability's constraints.
      *
-     * @return \Silber\Bouncer\Constraints\Constrainer
+     * @return \Corbinjurgens\Bouncer\Constraints\Constrainer
      */
     public function getConstraints()
     {
@@ -85,7 +86,7 @@ trait IsAbility
     /**
      * Set the ability's constraints.
      *
-     * @param  \Silber\Bouncer\Constraints\Constrainer  $constrainer
+     * @param  \Corbinjurgens\Bouncer\Constraints\Constrainer  $constrainer
      * @return $this
      */
     public function setConstraints(Constrainer $constrainer)
@@ -153,7 +154,7 @@ trait IsAbility
             Models::classname(Role::class),
             'entity',
             Models::table('permissions')
-        )->withPivot('forbidden', 'scope');
+        )->withPivot('forbidden', 'scope')->using( Models::classname(Permission::class) );
 
         return Models::scope()->applyToRelation($relation);
     }
@@ -169,7 +170,7 @@ trait IsAbility
             Models::classname(User::class),
             'entity',
             Models::table('permissions')
-        )->withPivot('forbidden', 'scope');
+        )->withPivot('forbidden', 'scope')->using( Models::classname(Permission::class) );
 
         return Models::scope()->applyToRelation($relation);
     }

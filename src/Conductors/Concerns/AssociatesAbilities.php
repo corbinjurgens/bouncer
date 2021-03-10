@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Conductors\Concerns;
+namespace Corbinjurgens\Bouncer\Conductors\Concerns;
 
 use Illuminate\Support\Arr;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 use Illuminate\Database\Eloquent\Model;
 
 trait AssociatesAbilities
@@ -16,7 +16,7 @@ trait AssociatesAbilities
      * @param  \Illuminate\Database\Eloquent\model|array|int  $abilities
      * @param  \Illuminate\Database\Eloquent\Model|string|null  $model
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Conductors\Lazy\ConductsAbilities|null
+     * @return \Corbinjurgens\Bouncer\Conductors\Lazy\ConductsAbilities|null
      */
     public function to($abilities, $model = null, array $attributes = [])
     {
@@ -118,10 +118,10 @@ trait AssociatesAbilities
     protected function associateAbilitiesToAuthority(array $ids, Model $authority)
     {
         $attributes = Models::scope()->getAttachAttributes(get_class($authority));
-
+		$pivot_options = $this->getPivotOptions();// editeds
         $authority
             ->abilities()
-            ->attach($ids, ['forbidden' => $this->forbidding] + $attributes);
+            ->attach($ids, ['forbidden' => $this->forbidding] + $attributes + $pivot_options);// editeds
     }
 
     /**
@@ -135,9 +135,9 @@ trait AssociatesAbilities
         $attributes = ['forbidden' => $this->forbidding];
 
         $attributes += Models::scope()->getAttachAttributes();
-
-        $records = array_map(function ($id) use ($attributes) {
-            return ['ability_id' => $id] + $attributes;
+		$pivot_options = $this->getPivotOptions();// editeds
+        $records = array_map(function ($id) use ($attributes, $pivot_options) {
+            return ['ability_id' => $id] + $attributes + $pivot_options;// edited
         }, $ids);
 
         Models::query('permissions')->insert($records);

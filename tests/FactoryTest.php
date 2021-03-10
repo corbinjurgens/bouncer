@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer\Tests;
+namespace Corbinjurgens\Bouncer\Tests;
 
-use Silber\Bouncer\Bouncer;
+use Corbinjurgens\Bouncer\Bouncer;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Container\Container;
 

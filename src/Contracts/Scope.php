@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Contracts;
+namespace Corbinjurgens\Bouncer\Contracts;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

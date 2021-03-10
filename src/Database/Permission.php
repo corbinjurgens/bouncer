@@ -2,18 +2,17 @@
 
 namespace Corbinjurgens\Bouncer\Database;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphPivot;
 
-class Role extends Model
+class Permission extends MorphPivot
 {
-    use Concerns\IsRole;
-
+	public $incrementing = true;
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'title', 'level'];
+    //protected $fillable = ['name', 'title', 'level'];
 
     /**
      * The attributes that should be cast to native types.
@@ -21,8 +20,7 @@ class Role extends Model
      * @var array
      */
     protected $casts = [
-        'id' => 'int',
-        'level' => 'int',
+        'pivot_options' => 'array'
     ];
 
     /**
@@ -32,7 +30,7 @@ class Role extends Model
      */
     public function __construct(array $attributes = [])
     {
-        $this->table = Models::table('roles');
+        $this->table = Models::table('permissions');
 
         parent::__construct($attributes);
     }

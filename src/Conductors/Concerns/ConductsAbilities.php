@@ -1,13 +1,31 @@
 <?php
 
-namespace Silber\Bouncer\Conductors\Concerns;
+namespace Corbinjurgens\Bouncer\Conductors\Concerns;
 
-use Silber\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Helpers;
 use Illuminate\Support\Collection;
-use Silber\Bouncer\Conductors\Lazy;
+use Corbinjurgens\Bouncer\Conductors\Lazy;
 
 trait ConductsAbilities
 {
+	/**
+	 * Custom CJ
+	 * Options for the pivot, saves to 'options' column on permissions
+	 */
+	protected $pivot_options;
+	public function withOptions(array $pivot_options = []){
+		$this->pivot_options = $pivot_options;
+		return $this;
+	}
+	protected function getPivotOptions(){
+		$pivot_options = [];
+		if (is_array($this->pivot_options)){
+			$pivot_options = $this->pivot_options;
+		}
+		return ['pivot_options' => array_replace(['limit' => false], $pivot_options)];
+		
+	}
+	
     /**
      * Allow/disallow all abilities on everything.
      *
@@ -42,7 +60,7 @@ trait ConductsAbilities
      *
      * @param  string|object  $model
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Conductors\Lazy\HandlesOwnership
+     * @return \Corbinjurgens\Bouncer\Conductors\Lazy\HandlesOwnership
      */
     public function toOwn($model, array $attributes = [])
     {
@@ -53,7 +71,7 @@ trait ConductsAbilities
      * Allow/disallow owning all models.
      *
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Conductors\Lazy\HandlesOwnership
+     * @return \Corbinjurgens\Bouncer\Conductors\Lazy\HandlesOwnership
      */
     public function toOwnEverything(array $attributes = [])
     {
@@ -91,7 +109,7 @@ trait ConductsAbilities
      * Create a lazy abilities conductor.
      *
      * @param  string|string[]  $ablities
-     * @return \Silber\Bouncer\Conductors\Lazy\ConductsAbilities
+     * @return \Corbinjurgens\Bouncer\Conductors\Lazy\ConductsAbilities
      */
     protected function conductLazy($abilities)
     {

@@ -1,17 +1,18 @@
 <?php
 
-namespace Silber\Bouncer\Database\Concerns;
+namespace Corbinjurgens\Bouncer\Database\Concerns;
 
 use Illuminate\Container\Container;
 
-use Silber\Bouncer\Helpers;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Database\Ability;
-use Silber\Bouncer\Contracts\Clipboard;
-use Silber\Bouncer\Conductors\GivesAbilities;
-use Silber\Bouncer\Conductors\ForbidsAbilities;
-use Silber\Bouncer\Conductors\RemovesAbilities;
-use Silber\Bouncer\Conductors\UnforbidsAbilities;
+use Corbinjurgens\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Ability;
+use Corbinjurgens\Bouncer\Database\Permission;
+use Corbinjurgens\Bouncer\Contracts\Clipboard;
+use Corbinjurgens\Bouncer\Conductors\GivesAbilities;
+use Corbinjurgens\Bouncer\Conductors\ForbidsAbilities;
+use Corbinjurgens\Bouncer\Conductors\RemovesAbilities;
+use Corbinjurgens\Bouncer\Conductors\UnforbidsAbilities;
 
 trait HasAbilities
 {
@@ -40,7 +41,7 @@ trait HasAbilities
             Models::classname(Ability::class),
             'entity',
             Models::table('permissions')
-        )->withPivot('forbidden', 'scope');
+        )->withPivot('forbidden', 'scope')->using( Models::classname(Permission::class) );
 
         return Models::scope()->applyToRelation($relation);
     }
@@ -74,7 +75,7 @@ trait HasAbilities
      *
      * @param  mixed  $ability
      * @param  mixed|null  $model
-     * @return \Silber\Bouncer\Conductors\GivesAbilities|$this
+     * @return \Corbinjurgens\Bouncer\Conductors\GivesAbilities|$this
      */
     public function allow($ability = null, $model = null)
     {
@@ -92,7 +93,7 @@ trait HasAbilities
      *
      * @param  mixed  $ability
      * @param  mixed|null  $model
-     * @return \Silber\Bouncer\Conductors\RemovesAbilities|$this
+     * @return \Corbinjurgens\Bouncer\Conductors\RemovesAbilities|$this
      */
     public function disallow($ability = null, $model = null)
     {
@@ -110,7 +111,7 @@ trait HasAbilities
      *
      * @param  mixed  $ability
      * @param  mixed|null  $model
-     * @return \Silber\Bouncer\Conductors\ForbidsAbilities|$this
+     * @return \Corbinjurgens\Bouncer\Conductors\ForbidsAbilities|$this
      */
     public function forbid($ability = null, $model = null)
     {
@@ -128,7 +129,7 @@ trait HasAbilities
      *
      * @param  mixed  $ability
      * @param  mixed|null  $model
-     * @return \Silber\Bouncer\Conductors\UnforbidsAbilities|$this
+     * @return \Corbinjurgens\Bouncer\Conductors\UnforbidsAbilities|$this
      */
     public function unforbid($ability = null, $model = null)
     {

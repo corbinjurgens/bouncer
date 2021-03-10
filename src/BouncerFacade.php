@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use Illuminate\Support\Facades\Facade;
 

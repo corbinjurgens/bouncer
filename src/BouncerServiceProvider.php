@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
 use Illuminate\Support\Arr;
-use Silber\Bouncer\Database\Models;
-use Silber\Bouncer\Console\CleanCommand;
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Console\CleanCommand;
 
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Support\ServiceProvider;

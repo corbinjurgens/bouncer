@@ -1,10 +1,10 @@
 <?php
 
-namespace Silber\Bouncer\Tests\Concerns;
+namespace Corbinjurgens\Bouncer\Tests\Concerns;
 
-use Silber\Bouncer\Clipboard;
-use Silber\Bouncer\Tests\User;
-use Silber\Bouncer\CachedClipboard;
+use Corbinjurgens\Bouncer\Clipboard;
+use Corbinjurgens\Bouncer\Tests\User;
+use Corbinjurgens\Bouncer\CachedClipboard;
 
 use Illuminate\Cache\NullStore;
 
@@ -38,7 +38,7 @@ trait TestsClipboards
     /**
      * Provide the bouncer instance (with its user) using the given clipboard.
      *
-     * @param  \Silber\Bouncer\Clipboard  $clipboard
+     * @param  \Corbinjurgens\Bouncer\Clipboard  $clipboard
      * @param  int  $authoriesCount
      * @param  string  $authority
      * @return array

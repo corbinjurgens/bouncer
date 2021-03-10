@@ -1,6 +1,6 @@
 <?php
 
-namespace Silber\Bouncer\Database;
+namespace Corbinjurgens\Bouncer\Database;
 
 use Closure;
 use App\User;
@@ -8,8 +8,8 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
-use Silber\Bouncer\Database\Scope\Scope;
-use Silber\Bouncer\Contracts\Scope as ScopeContract;
+use Corbinjurgens\Bouncer\Database\Scope\Scope;
+use Corbinjurgens\Bouncer\Contracts\Scope as ScopeContract;
 
 class Models
 {
@@ -37,7 +37,7 @@ class Models
     /**
      * The model scoping instance.
      *
-     * @var \Silber\Bouncer\Database\Scope\Scope
+     * @var \Corbinjurgens\Bouncer\Database\Scope\Scope
      */
     protected static $scope;
 
@@ -53,6 +53,16 @@ class Models
 
         static::updateMorphMap([$model]);
     }
+	/**
+	 * Custom
+	 */
+    public static function setPermissionsModel($model)
+    {
+        static::$models[Permissions::class] = $model;
+
+        static::updateMorphMap([$model]);
+    }
+
 
     /**
      * Set the model to be used for roles.
@@ -111,7 +121,7 @@ class Models
     /**
      * Get or set the model scoping instance.
      *
-     * @param  \Silber\Bouncer\Contracts\Scope|null  $scope
+     * @param  \Corbinjurgens\Bouncer\Contracts\Scope|null  $scope
      * @return mixed
      */
     public static function scope(ScopeContract $scope = null)
@@ -154,6 +164,7 @@ class Models
             $classNames = [
                 static::classname(Role::class),
                 static::classname(Ability::class),
+                static::classname(Permission::class),
             ];
         }
 
@@ -219,7 +230,7 @@ class Models
      * Get an instance of the ability model.
      *
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Ability
+     * @return \Corbinjurgens\Bouncer\Database\Ability
      */
     public static function ability(array $attributes = [])
     {
@@ -230,7 +241,7 @@ class Models
      * Get an instance of the role model.
      *
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Role
+     * @return \Corbinjurgens\Bouncer\Database\Role
      */
     public static function role(array $attributes = [])
     {

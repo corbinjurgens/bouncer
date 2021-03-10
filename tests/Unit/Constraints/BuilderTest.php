@@ -1,11 +1,11 @@
 <?php
 
-namespace Silber\Bouncer\Tests\Unit\Constraints;
+namespace Corbinjurgens\Bouncer\Tests\Unit\Constraints;
 
 use PHPUnit\Framework\TestCase;
-use Silber\Bouncer\Constraints\Group;
-use Silber\Bouncer\Constraints\Builder;
-use Silber\Bouncer\Constraints\Constraint;
+use Corbinjurgens\Bouncer\Constraints\Group;
+use Corbinjurgens\Bouncer\Constraints\Builder;
+use Corbinjurgens\Bouncer\Constraints\Constraint;
 
 class BuilderTest extends TestCase
 {

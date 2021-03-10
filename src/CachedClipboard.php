@@ -1,8 +1,8 @@
 <?php
 
-namespace Silber\Bouncer;
+namespace Corbinjurgens\Bouncer;
 
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Models;
 
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Contracts\Cache\Store;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Silber\Bouncer\Conductors\Concerns;
+namespace Corbinjurgens\Bouncer\Conductors\Concerns;
 
-use Silber\Bouncer\Helpers;
-use Silber\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Helpers;
+use Corbinjurgens\Bouncer\Database\Models;
 
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
@@ -109,7 +109,7 @@ trait FindsAndCreatesAbilities
      * @param  string  $ability
      * @param  \Illuminate\Database\Eloquent\Model|string  $entity
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Ability
+     * @return \Corbinjurgens\Bouncer\Database\Ability
      */
     protected function getModelAbility($ability, $entity, array $attributes)
     {
@@ -126,7 +126,7 @@ trait FindsAndCreatesAbilities
      * @param  string  $ability
      * @param  \Illuminate\Database\Eloquent\Model|string  $entity
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Ability|null
+     * @return \Corbinjurgens\Bouncer\Database\Ability|null
      */
     protected function findAbility($ability, $entity, $attributes)
     {
@@ -146,7 +146,7 @@ trait FindsAndCreatesAbilities
      * @param  string  $ability
      * @param  \Illuminate\Database\Eloquent\Model|string  $entity
      * @param  array  $attributes
-     * @return \Silber\Bouncer\Database\Ability
+     * @return \Corbinjurgens\Bouncer\Database\Ability
      */
     protected function createAbility($ability, $entity, $attributes)
     {
