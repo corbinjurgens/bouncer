@@ -11,6 +11,38 @@ use Illuminate\Database\Eloquent\Model;
 
 class Helpers
 {
+	/**
+	 * Mixed array to option eg [10, 11, 12 => ['expired' => True]]
+	 * If you always use key value format, give empty array
+	 * Eg change from attach($roleIds, ['expires' => $expires]);
+	 * to attach([
+	 *		1 => ['expires' => $expires],
+	 *		2 => ['expires' => $expires],
+	 *	]);
+	 * and prefer values given in array
+	 */
+	public static function toOptionArray($array, $defaults = []){
+		$prepared = [];
+		foreach($array as $k => $v){
+			$key = is_array($v) ? $k : $v;
+			$value = is_array($v) ? array_replace($defaults, $v) : $defaults;
+			
+			$prepared[$key] = $value;
+		}
+		return $prepared;
+	}
+	public static function combineArrays($default = null, ...$arrays){
+		$compiled_array = [];
+		foreach($arrays as $array){
+			if (is_array($array)){
+				$compiled_array = array_replace($compiled_array, $array);
+			}
+		}
+		if ($compiled_array){
+			return $compiled_array;
+		}
+		return $default;
+	}
     /**
      * Ensure that the given logical operator is 'and'|'or'.
      *

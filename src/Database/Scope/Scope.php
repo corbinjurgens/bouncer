@@ -172,6 +172,28 @@ class Scope implements ScopeContract
     }
 
     /**
+     * Apply to pivot (as only when applying to piviot with the 'wherePivot' functions
+	 * will detach / attach adhere to them )
+     *
+     * This internal method does not check whether
+     * the given query needs to be scoped. That
+     * is fully the caller's responsibility.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function applyToPivot($query)
+    {	
+		if (is_null($this->scope)) {
+            return $query;
+        }
+        return $query->where(function ($query) use ($table) {
+            $query->wherePivot("scope", $this->scope)
+                  ->orWherePivotNull("scope");
+        });
+    }
+
+    /**
      * Get the current scope value.
      *
      * @return mixed

@@ -9,20 +9,22 @@ use Corbinjurgens\Bouncer\Conductors\Lazy;
 trait ConductsAbilities
 {
 	/**
-	 * Custom CJ
-	 * Options for the pivot, saves to 'options' column on permissions
+	 * Declare attributes for the pivot before running to() or other conducting function, 
+	 * Pass an array, such as 
+	 * ['pivot_options' => ['limit' => 2]]
+	 * To change the pivots attributes when attatching / syncing
 	 */
-	protected $pivot_options;
-	public function withOptions(array $pivot_options = []){
-		$this->pivot_options = $pivot_options;
+	protected $pivot_attributes = null;
+	public function setPivot(array $pivot_attributes = null){
+		$this->pivot_attributes = $pivot_attributes;
 		return $this;
 	}
-	protected function getPivotOptions(){
-		$pivot_options = [];
-		if (is_array($this->pivot_options)){
-			$pivot_options = $this->pivot_options;
+	protected function getPivotAttributes(){
+		$pivot_attributes = [];
+		if (is_array($this->pivot_attributes)){
+			$pivot_attributes = $this->pivot_attributes;
 		}
-		return ['pivot_options' => array_replace(['limit' => false], $pivot_options)];
+		return $pivot_attributes;
 		
 	}
 	

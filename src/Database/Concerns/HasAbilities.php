@@ -41,7 +41,7 @@ trait HasAbilities
             Models::classname(Ability::class),
             'entity',
             Models::table('permissions')
-        )->withPivot('forbidden', 'scope')->using( Models::classname(Permission::class) );
+        )->withPivot('forbidden', 'scope', 'pivot_options')->using( Models::classname(Permission::class) );
 
         return Models::scope()->applyToRelation($relation);
     }

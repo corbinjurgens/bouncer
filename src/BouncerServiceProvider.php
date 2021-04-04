@@ -12,6 +12,8 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 class BouncerServiceProvider extends ServiceProvider
 {
     /**
@@ -23,6 +25,11 @@ class BouncerServiceProvider extends ServiceProvider
     {
         $this->registerBouncer();
         $this->registerCommands();
+		
+		$this->registerRelationMacros();
+		
+		// Control
+		$this->mergeControlConfig();
     }
 
     /**
@@ -40,8 +47,62 @@ class BouncerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishMiddleware();
             $this->publishMigrations();
+			
+			// Control
+            $this->publishControlConfig();
         }
     }
+	protected function registerRelationMacros(){
+		BelongsToMany::macro('filtered_sync', $this->relationMacro());
+	}
+	/**
+	 * Use just as normal sync(). It will automatically only detach items that are missing match the filtered results.
+	 * Optionally, use a query closure as $compare to double check that the $ids you are trying to sync are matching. For best results, use
+	 * the same query closure for both synching and comparing (leave out any pivot related queries for comparing). This is a workaround as achieving this properly would require heavily modifying
+	 * laravel classes
+	 */
+	protected function relationMacro(){
+		return function($ids, $detaching = true, \Closure $compare = null)
+		{
+			$changes = [
+				'attached' => [], 'detached' => [], 'updated' => [],
+			];
+			
+			$records = $this->formatRecordsList($this->parseIds($ids));
+			
+			// If $compare closure is given, apply it to a new related query and confirm these items to be added or updated match the filters
+			if (!is_null($compare)){
+				$compare_ids = $this->related->where($compare)->whereIn($this->getRelatedKeyName(), array_keys($records))->get([$this->getRelatedKeyName()])->pluck($this->getRelatedKeyName())->all();
+				$records = array_intersect_key($records, array_flip($compare_ids));
+			}
+			
+			// Unlike the sync method, this also takes into account all 'where' and other filtering
+			// to decide which to delete and which are new
+			$current = $this->get([$this->related->getTable() . '.' . $this->getRelatedKeyName()])->pluck( $this->getRelatedKeyName() )->all();
+			
+			// From here on is same as normal sync() function
+			$detach = array_diff($current, array_keys(
+				$records
+			));
+			
+			if ($detaching && count($detach) > 0) {
+				$this->detach($detach);
+
+				$changes['detached'] = $this->castKeys($detach);
+			}
+			
+			$changes = array_merge(
+				$changes, $this->attachNew($records, $current, false)
+			);
+			
+			if (count($changes['attached']) ||
+				count($changes['updated'])) {
+				$this->touchIfTouching();
+			}
+
+			return $changes;
+		};
+	}
 
     /**
      * Register Bouncer as a singleton.
@@ -110,6 +171,36 @@ class BouncerServiceProvider extends ServiceProvider
         $target = $this->app->databasePath().'/migrations/'.$timestamp.'_create_bouncer_tables.php';
 
         $this->publishes([$stub => $target], 'bouncer.migrations');
+    }
+
+    /**
+     * Publish the config for Control
+     *
+     * @return void
+     */
+    protected function publishControlConfig()
+    {
+
+        $stub = __DIR__.'/control/bouncercontrol.php';
+
+        $target = config_path('bouncercontrol' . '.php');
+
+        $this->publishes([$stub => $target], 'bouncer.controlconfig');
+    }
+
+    /**
+     * Merge config for Control
+     *
+     * @return void
+     */
+    protected function mergeControlConfig()
+    {
+
+        $stub = __DIR__.'/control/bouncercontrol.php';
+
+        $target = 'bouncercontrol';
+
+        $this->mergeConfigFrom($stub, $target);
     }
 
     /**

@@ -260,6 +260,18 @@ class Models
     }
 
     /**
+	 * Custom
+     * Get an instance of the permmissions model.
+     *
+     * @param  array  $attributes
+     * @return \Corbinjurgens\Bouncer\Database\Ability
+     */
+    public static function permission(array $attributes = [])
+    {
+        return static::make(Permission::class, $attributes);
+    }
+
+    /**
      * Get a new query builder instance.
      *
      * @param  string  $table

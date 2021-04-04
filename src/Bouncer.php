@@ -559,4 +559,13 @@ class Bouncer
     {
         return Container::getInstance()->make($abstract, $parameters);
     }
+	
+	/**
+	 * Access added functionality from Corbinjurgens\Control class
+	 * Such as getting and setting user abilities via ui
+	 * 
+	 */
+	public function control(){
+		return new Control();
+	}
 }

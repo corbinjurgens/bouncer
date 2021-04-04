@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class SyncsRolesAndAbilities
 {
-    use Concerns\FindsAndCreatesAbilities;
+    use Concerns\FindsAndCreatesAbilities, Concerns\ScopesModel;
 
     /**
      * The authority for whom to sync roles/abilities.
@@ -44,24 +44,15 @@ class SyncsRolesAndAbilities
             $this->authority->roles()
         );
     }
-	/**
-	 * 
-	 * Custom Model to scope to certain model sync only. Model intance or model string. Best used as string or class tho // edited
-	 */
-    protected $scope_model;
-	public function whereHas($scope_model = null){
-		$this->scope_model = $scope_model;
-		return $this;
-	}
     /**
      * Sync the provided abilities to the authority.
      *
      * @param  iterable  $abilities
      * @return void
      */
-    public function abilities($abilities, $scope_model = null)
+    public function abilities($abilities, $options = [])
     {
-        $this->syncAbilities($abilities);
+        $this->syncAbilities($abilities, array_replace(['forbidden' => false, 'array' => True], $options));
     }
 
     /**
@@ -70,9 +61,9 @@ class SyncsRolesAndAbilities
      * @param  iterable  $abilities
      * @return void
      */
-    public function forbiddenAbilities($abilities)
+    public function forbiddenAbilities($abilities, $options = [])
     {
-        $this->syncAbilities($abilities, ['forbidden' => true]);
+        $this->syncAbilities($abilities, array_replace(['forbidden' => true, 'array' => True], $options));
     }
 
     /**
@@ -82,42 +73,64 @@ class SyncsRolesAndAbilities
      * @param  array  $options
      * @return void
      */
-    protected function syncAbilities($abilities, $options = ['forbidden' => false])
+    protected function syncAbilities($abilities, $options = ['forbidden' => false, 'array' => True])
     {
-		$scope_model = $this->scope_model;// edited
-		
-        $abilityKeys = $this->getAbilityIds($abilities);
-        $authority = $this->getAuthority();
-        $relation = $authority->abilities();
-		
-		/**
-		 * Added CJ
-		 * Scope to a certain model, so syncing only within a 
-		 */
-		$relation->when($scope_model, function($query) use ($scope_model){
-				 $model = $scope_model;
-				 if (is_string($scope_model)){
-					 $model = new $scope_model();
-				 }
-				 if ($model->exists){
-					 $query->where('entity_id', $model->getKey());
-				 }
-				 $query->where('entity_type', $model->getMorphClass());
-				 
-			 });
-			 
-        $this->newPivotQuery($relation)
-             ->where('entity_type', $authority->getMorphClass())
-             ->whereNotIn($relation->getRelatedPivotKeyName(), $abilityKeys)
-             ->where('forbidden', $options['forbidden'])
-             ->delete();
+		$associateClass = $options['forbidden'] ? ForbidsAbilities::class : GivesAbilities::class;
+		if ($options['array']){
+			// TODO allow assoc array as currently its ability names as keys only
+			$abilityData = $this->getFullAbilities($abilities, $this->getScopeModel());
+			$this->syncClearAbilities( array_column($abilityData, 'id') , $options['forbidden']);
+			
+			$instance = new $associateClass($this->authority);
+			$this->passModelScope($instance);
+			$instance->associateAbilitiesDirectly($abilityData);
+			
+		}else{
+			// Default method
+			$abilityKeys = $this->getAbilityIds($abilities);
+			$this->syncClearAbilities($abilityKeys, $options['forbidden']);
 
-        if ($options['forbidden']) {
-            (new ForbidsAbilities($this->authority))->to($abilityKeys);
-        } else {
-            (new GivesAbilities($this->authority))->to($abilityKeys);
-        }
+			(new $associateClass($this->authority))->to($abilityKeys);
+		}
     }
+	
+
+    /**
+     * Clear Sync the given abilities for the authority.
+     *
+     * @param  array  $keys
+     * @param  bool  $forbidden
+     * @return void
+     */
+    protected function syncClearAbilities($keys, $forbidden)
+    {
+		
+		$associateClass = $forbidden ? ForbidsAbilities::class : GivesAbilities::class;
+		if (!is_null($this->authority)){
+			$authority = $this->getAuthority();
+			$relation = $authority->abilities();
+			
+			$instance = new $associateClass($this->authority);
+			$this->passModelScope($instance);
+			$ids = $instance->getAssociatedAbilityQuery()
+				->whereNotIn($relation->getQualifiedRelatedKeyName(), $keys);
+				
+			$ids = $ids->get()->pluck('id')->all();
+			
+			// Apply scope to pivot so detach behaves
+			Models::scope()->applyToPivot($relation);
+			$relation->wherePivot('forbidden', $forbidden);
+			$relation->detach($ids);
+		}else{
+			$instance = new $associateClass();
+			$query = $instance->getAbilityIdsAssociatedWithEveryoneQuery();
+			$query->whereNotIn('ability_id', $keys);
+			$query->delete();
+		}
+
+    }
+	
+	
 
     /**
      * Get (and cache) the authority for whom to sync roles/abilities.
@@ -164,7 +177,6 @@ class SyncsRolesAndAbilities
             $this->newPivotQuery($relation),
             $relation->getRelatedPivotKeyName()
         );
-
         $this->detach(array_diff($current, $ids), $relation);
 
         $relation->attach(

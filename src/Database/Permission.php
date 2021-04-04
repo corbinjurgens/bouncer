@@ -4,9 +4,14 @@ namespace Corbinjurgens\Bouncer\Database;
 
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 
+use Corbinjurgens\Bouncer\Database\Models;
+use Corbinjurgens\Bouncer\Database\Ability;
+
 class Permission extends MorphPivot
 {
 	public $incrementing = true;
+	const CREATED_AT = null;
+	const UPDATED_AT = null;
     /**
      * The attributes that are mass assignable.
      *
@@ -34,4 +39,8 @@ class Permission extends MorphPivot
 
         parent::__construct($attributes);
     }
+	
+	public function ability(){
+		return $this->belongsTo( Models::classname(Ability::class) );
+	}
 }

@@ -40,6 +40,43 @@ trait FindsAndCreatesAbilities
 
         return $this->getAbilityIdsFromArray($abilities, $attributes);
     }
+	/**
+	 * Like getAbilityIds but keeps track of what you passed to it for later reference
+	 * Can only use ability name as key and array as value, or just ability name as value, mixing allowed. TODO This means right now you cant set same ability for different models 
+	 * Attributes and model has an actual function here, everything else is simply passed back
+	 * eg ['create' => ['attributes' => [], 'pivot' => [ 'pivot_options' => [...] ], ... other values], 'delete', 'edit'] // 'model' => Post::first() is possible but not recommended when syncing with scoped model of differnt table
+	 * All values passed will return back so you can know what options are mean for what abilty
+	 */
+	protected function getFullAbilities($abilities, $model = null, array $attributes = []){
+		if (!is_array($abilities)){
+			$abilities = [$abilities];
+		}
+		$prepared_abilities = Helpers::toOptionArray($abilities, []);
+		
+		$abilities = Collection::make($prepared_abilities);
+
+        $models = Collection::make(is_array($model) ? $model : [$model]);
+
+        return $abilities->map(function ($value, $ability) use ($models, $attributes) {
+			$target_models = isset($value['model']) ? ( Collection::make(is_array($value['model']) ? $value['model'] : [$value['model']]) ) : $models;
+            return $target_models->map(function ($model) use ($value, $ability, $attributes) {
+				$attributes = Helpers::combineArrays([], $attributes, @$value['attributes']);
+				$getModel = (is_null($model)) ? $this->abilitiesByName($ability, $attributes)->first() : $this->getModelAbility($ability, $model, $attributes);
+               
+				
+				return [
+					'id' => $getModel->getKey(),
+					'ability' => $getModel,
+					'attributes' => $attributes,
+					'pivot' => Helpers::combineArrays([], /*['pivot_options' => null],*/ @$value['pivot']),
+					
+				]
+				 + 
+				array_diff_key($value, array_flip(['ability', 'attributes', 'pivot']) );
+				;
+            });
+        })->collapse()->keyBy('id')->all();
+	}
 
     /**
      * Get the ability IDs for the given map.
@@ -136,7 +173,7 @@ trait FindsAndCreatesAbilities
                      ->where('name', $ability)
                      ->forModel($entity, true)
                      ->where('only_owned', $onlyOwned);
-
+		
         return Models::scope()->applyToModelQuery($query)->first();
     }
 
@@ -199,7 +236,6 @@ trait FindsAndCreatesAbilities
         }
 
         $existing = Models::ability()->simpleAbility()->whereIn('name', $abilities)->get();
-
         return $existing->merge($this->createMissingAbilities(
             $existing, $abilities, $attributes
         ));

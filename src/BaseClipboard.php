@@ -106,9 +106,61 @@ abstract class BaseClipboard implements Contracts\Clipboard
      */
     public function getAbilities(Model $authority, $allowed = true)
     {
-		// TODO add pivot
-        return Abilities::forAuthority($authority, $allowed)->get();
+        $abilities = Abilities::forAuthority($authority, $allowed)->get();
+		return $this->applyPivot($abilities, $authority, $allowed);
     }
+	/**
+	 * Custom
+	 * TODO add checks to make sure doesn't look for roles on roles, or maybe that shouldn't occur?
+	 */
+	protected function applyPivot($collection, $authority, $allowed){
+		$ability_ids = $collection->pluck('id');
+		
+		$roles_ids = $this->getRolesLookup($authority)['ids']->keys()->all();
+		$permissions = Models::table('permissions');
+		
+		$query = Models::permission()->query();
+		$query->whereIn( "{$permissions}.ability_id", $ability_ids);
+		$query->where("{$permissions}.forbidden", ! $allowed);
+		$query->where(function($query) use ($permissions, $authority, $roles_ids){
+			$query->where(function($query) use ($permissions, $authority){
+				// Direct permissions
+				$query->where($permissions.'.entity_type', $authority->getMorphClass());
+				$query->where($permissions.'.entity_id', $authority->getKey());
+			})->orWhere(function($query) use ($permissions, $roles_ids){
+				// Role permissions
+				 $query->where($permissions.".entity_type", Models::role()->getMorphClass());
+				 $query->whereIn($permissions.".entity_id", $roles_ids );
+			})->orWhere(function($query){
+				// Everyone permissions
+				$query->whereNull('entity_id');
+			});
+		});
+		
+		Models::scope()->applyToModelQuery($query, $permissions);
+		
+		$pivots = $query->get()->groupBy('ability_id');
+		
+		foreach($collection as &$item){
+			if ($pivots->has($item->getKey())){
+				$target = $pivots->get( $item->getKey() );
+				$find = null;
+				// Incase a user has the same permission by multiple ways, priorize user, role then everyone
+				if ( 
+					( $find = $target->firstWhere('entity_type', $authority->getMorphClass() ) )
+						||
+					( $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
+						|| 
+					( $find = $target->first() )
+				){
+					$item->setRelation('pivot', $find);
+				}
+				
+			}
+		}
+		return $collection;
+		
+	}
 
     /**
      * Get a list of the authority's forbidden abilities.
@@ -118,8 +170,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
      */
     public function getForbiddenAbilities(Model $authority)
     {
-		// TODO add pivot
-        return $this->getAbilities($authority, false);
+		return $this->getAbilities($authority, false);
     }
 
     /**

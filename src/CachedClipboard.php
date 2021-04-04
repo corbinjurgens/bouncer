@@ -340,7 +340,19 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
      */
     protected function deserializeAbilities(array $abilities)
     {
-        return Models::ability()->hydrate($abilities);
+		
+		$instance = Models::ability();
+
+        return $instance->newCollection(array_map(function ($item) use ($instance) {
+			$pivot = $item['pivot'] ?? null;
+			unset($item['pivot']);
+            $model = $instance->newFromBuilder($item);
+			if ($pivot){
+				$pivot_model = Models::permission()->newFromBuilder($pivot);
+				$model->setRelation('pivot', $pivot_model);
+			}
+			return $model;
+        }, $abilities));
     }
 
     /**
@@ -352,7 +364,7 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
     protected function serializeAbilities(Collection $abilities)
     {
         return $abilities->map(function ($ability) {
-            return $ability->getAttributes();
+            return $ability->getAttributes() + ['pivot' => $ability->pivot ? $ability->pivot->getAttributes() : null];
         })->all();
     }
 }
