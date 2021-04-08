@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 use Corbinjurgens\Bouncer\Database\Models;
 
+use Corbinjurgens\Bouncer\Control\Concerns\SpecialAbilities;
+
 trait ScopesModel
 {
 	/**
@@ -85,9 +87,11 @@ trait ScopesModel
 	}
 	
 	private $special_scope = null;
-	static $special_abilities = [
-		'__claim',
-	];
+	/**
+	 * Special abilities information stored as trait
+	 */
+	use SpecialAbilities;
+	
 	/**
 	 * Eg set to 'claim' mode to only modify the special ability,
 	 * Otherwise it will ignore all special abilities as declared in static $special_abilities

@@ -77,8 +77,8 @@ trait DealsWithTables
 			'forbid_general' => true,
 			'forbid_specific' => true,
 			
+			'claim' => true,
 			'anything' => false,
-			'claim' => false,
 		];
 		$default_options = $only_options;
 		$table_config = self::getTableInfo($table);

@@ -5,8 +5,12 @@ namespace Corbinjurgens\Bouncer;
 use Illuminate\Database\Eloquent\Model;
 use Corbinjurgens\Bouncer\Database\Queries\Abilities;
 
+use Corbinjurgens\Bouncer\Control\Concerns\SpecialAbilities;
+
 class Clipboard extends BaseClipboard
 {
+	use SpecialAbilities;
+	
     /**
      * Determine if the given authority has the given ability, and return the ability ID.
      *
@@ -23,7 +27,21 @@ class Clipboard extends BaseClipboard
 
         $ability = $this->getAllowingAbility($authority, $ability, $model);
 
-        return $ability ? $ability->getKey() : null;
+        $result = $ability ? $ability->getKey() : null;
+		
+		if (is_null($result) && isset(self::$special_ability_map[$ability])){
+			// Ability failed, see if there is any special ability mapped to the ability
+			// Such as user is trying to 'create' therefore we should see if they can '__claim'
+			$special_ability = self::$special_ability_map[$ability];
+			$ability = $this->getAllowingAbility($authority, $special_ability, $model);
+			if ($ability){
+				$ability = $this->applyPivot($ability, $authority);
+				return $this->processSpecialAbility($ability, $authority, $model);
+			}
+			
+		}
+		
+		return $result;
     }
 
     /**

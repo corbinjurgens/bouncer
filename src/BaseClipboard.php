@@ -7,6 +7,7 @@ use Corbinjurgens\Bouncer\Database\Queries\Abilities;
 
 use InvalidArgumentException;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Access\Gate;
 
@@ -133,12 +134,12 @@ abstract class BaseClipboard implements Contracts\Clipboard
 	 * @param array $abilities
 	 * @param bool $ability_strict
 	 */
-	public static function collectionPipe($model, $model_strict = false, $model_mode = null, $abilities, $ability_strict = false){
+	public static function collectionPipe($model, $model_strict = false, $model_mode = null, array $abilities = null, $ability_strict = false){
 		
 		return function($collection) use ($model, $model_strict, $model_mode, $abilities, $ability_strict){
 			
 			// Get name same as abilities, and * if not strict
-			if ($ability_strict === false && !in_array("*", $abilities)) $abilities[] = "*";
+			if ($ability_strict === false && is_array($abilities) && !in_array("*", $abilities)) $abilities[] = "*";
 						
 			return $collection
 				// Model is null, only look for simple abilities similar to trait IsAbility scopeSimpleAbility
@@ -161,9 +162,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
 						return 
 							($item->entity_id == $model->getKey())
 								||
-							($model_strict === false)
-								||
-							($model_strict === true && $item->entity_id === null)
+							($model_strict === false && $item->entity_id === null)
 							;
 					});
 				})
@@ -180,14 +179,22 @@ abstract class BaseClipboard implements Contracts\Clipboard
 						;
 				})
 				
-				->whereIn('name', $abilities);
+				->when(is_array($abilities), function($collection) use ($abilities){
+					return $collection->whereIn('name', $abilities);
+				});
 		};
 		
 	}
 	/**
 	 * Apply pivot to abilities so we can get pivot info
+	 * TODO its not perfect, and doesn't check roles lower than current role etc. Perhaps could make use of some of the queries elsewhere
 	 */
 	protected function applyPivot($collection, ?Model $authority, $allowed = true){
+		$single_item = false;
+		if (!$collection instanceof EloquentCollection){
+			$single_item = true;
+			$collection = new EloquentCollection([$collection]);
+		}
 		$ability_ids = $collection->pluck('id');
 		
 		$permissions = Models::table('permissions');
@@ -231,7 +238,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
 					( $authority instanceof Model && $find = $target->firstWhere('entity_type', $authority->getMorphClass() ) )
 						||
 					// TODO arrange roles so that the highest level role is retrieved first
-					( $authority instanceof Model && $authority->getTable != Models::table('roles') && $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
+					( $authority instanceof Model && $authority->getTable() != Models::table('roles') && $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
 						|| 
 					( $find = $target->first() )
 				){
@@ -239,6 +246,9 @@ abstract class BaseClipboard implements Contracts\Clipboard
 				}
 				
 			}
+		}
+		if ($single_item === true){
+			return $collection->first();
 		}
 		return $collection;
 		

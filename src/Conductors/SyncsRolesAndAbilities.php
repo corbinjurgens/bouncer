@@ -76,7 +76,7 @@ class SyncsRolesAndAbilities
     protected function syncAbilities($abilities, $options = ['forbidden' => false, 'scope' => false])
     {
 		$associateClass = $options['forbidden'] ? ForbidsAbilities::class : GivesAbilities::class;
-		if ($options['scoped']){
+		if ($options['scope']){
 			// TODO allow assoc array as currently its ability names as keys only
 			$abilityData = $this->getFullAbilities($abilities, $this->getScopeModel());
 			$this->syncClearAbilities( array_column($abilityData, 'id') , $options['forbidden']);

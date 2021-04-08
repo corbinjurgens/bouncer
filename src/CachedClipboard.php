@@ -4,6 +4,8 @@ namespace Corbinjurgens\Bouncer;
 
 use Corbinjurgens\Bouncer\Database\Models;
 
+use Corbinjurgens\Bouncer\Control\Concerns\SpecialAbilities;
+
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +14,8 @@ use Illuminate\Support\Collection as BaseCollection;
 
 class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
 {
+	use SpecialAbilities;
+	
     /**
      * The tag used for caching.
      *
@@ -86,9 +90,25 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
             return false;
         }
 
-        return $this->findMatchingAbility(
+        $result = $this->findMatchingAbility(
             $this->getAbilities($authority), $applicable, $model, $authority
         );
+		
+		if (is_null($result) && isset(self::$special_ability_map[$ability])){
+			// Ability failed, see if there is any special ability mapped to the ability
+			// Such as user is trying to 'create' therefore we should see if they can '__claim'
+			$special_ability = self::$special_ability_map[$ability];
+			$applicable = $this->compileAbilityIdentifiers($special_ability, $model);
+			$ability_id = $this->findMatchingAbility(
+				$this->getAbilities($authority), $applicable, $model, $authority
+			);
+			if ($ability_id && $ability = $this->getAbilities($authority)->firstWhere('id', $ability_id)){
+				return $this->processSpecialAbility($ability, $authority, $model);
+			}
+			
+		}
+		
+		return $result;
     }
 
     /**

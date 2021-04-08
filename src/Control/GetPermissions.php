@@ -49,7 +49,7 @@ class GetPermissions
 					'edit',
 					'delete',
 				],
-				'presents' => [ // List of presets as declared in bouncercontrol, and the abilities that each would entail. To be used as you please in a purely UI sense, eg auto selecting a set of abilities based on preset
+				'presets' => [ // List of presets as declared in bouncercontrol, and the abilities that each would entail. To be used as you please in a purely UI sense, eg auto selecting a set of abilities based on preset
 					'maintainer' => [
 						'create',
 						'edit',
@@ -85,7 +85,7 @@ class GetPermissions
 					'edit',
 					'delete',
 				],
-				'presents' => [ // List of presets as declared in bouncercontrol, and the abilities that each would entail. To be used as you please in a purely UI sense, eg auto selecting a set of abilities based on preset
+				'presets' => [ // List of presets as declared in bouncercontrol, and the abilities that each would entail. To be used as you please in a purely UI sense, eg auto selecting a set of abilities based on preset
 					'maintainer' => [
 						'create',
 						'edit',
@@ -117,8 +117,8 @@ class GetPermissions
 				'level' => 1, // This specific table and permission types 'minimum' level. Use this feature if you only want certain permission types to only display to certain types of users. The level will display here if you want to show that this permission is any user, or only admin etc
 			],	
 			'anything_permissions' => [ // all other permission types follow this layout such as 'claim'
-				'list' => [],
-				'presents' => [],
+				'list' => [], // 'anything' by default has empty list of abilities, but claim and other will have list
+				'presets' => [],
 				'permissions' => [
 						'name' => '*', // in the case of claim it will be "claim". The name here isn't use when returning form data, but is useful for display of form to get translation or display 
 						'checked' => bool, // whether the target user has this ability

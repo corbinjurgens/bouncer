@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 trait CanScope
-{
+{	
 	/**
 	 * Query items only where the user can do something. 
 	 * Multiple abilities defaults to an any query (user should be able to do at least one)
@@ -162,4 +162,23 @@ trait CanScope
 	private function forceEmptyResults($query){
 		$query->whereRaw('0 = 1');
 	}
+	
+	
+	
+	/**
+	 * Set on created method to check if there is any user and abilities to set via the special 'claim' permission
+	 */
+	public $permisssion_claim = false;
+	public $permission_authority = null;
+	public $permission_abilities = [];
+    protected static function bootCanScope()
+    {
+        static::created(function($model){
+			if ($model->permisssion_claim === true && is_array($model->permission_abilities)){
+				\Bouncer::allow($model->permission_authority)->to($model->permission_abilities, $model);
+				\Bouncer::refreshFor($model->permission_authority);
+			}
+			
+		});
+    }
 }
