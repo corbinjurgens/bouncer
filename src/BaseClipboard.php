@@ -104,36 +104,117 @@ abstract class BaseClipboard implements Contracts\Clipboard
      * @param  bool  $allowed
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getAbilities(Model $authority, $allowed = true)
+    public function getAbilities(?Model $authority, $allowed = true)
     {
         $abilities = Abilities::forAuthority($authority, $allowed)->get();
 		return $this->applyPivot($abilities, $authority, $allowed);
     }
+
+    /**
+     * Get a list of the authority's direct abilities. 
+	 * Does not cache, is meant only for editing an authorities explicit abilities
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  bool  $allowed
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDirectAbilities(?Model $authority, $allowed = true)
+    {
+        $abilities = Abilities::forAuthority($authority, $allowed, true)->get();
+		return $this->applyPivot($abilities, $authority, $allowed);
+    }
+	
 	/**
-	 * Custom
-	 * TODO add checks to make sure doesn't look for roles on roles, or maybe that shouldn't occur?
+	 * Return the closure used to filter a permissions collection
+	 *
+	 * @param \Illuminate\Database\Eloquent\Model|string|null  $model // null, or "*" accepted
+	 * @param bool $model_strict // Whether it includes * entity_type and null entity_id
+	 * @param string|null $model_mode // 'strict', 'specific' or null
+	 * @param array $abilities
+	 * @param bool $ability_strict
 	 */
-	protected function applyPivot($collection, $authority, $allowed){
+	public static function collectionPipe($model, $model_strict = false, $model_mode = null, $abilities, $ability_strict = false){
+		
+		return function($collection) use ($model, $model_strict, $model_mode, $abilities, $ability_strict){
+			
+			// Get name same as abilities, and * if not strict
+			if ($ability_strict === false && !in_array("*", $abilities)) $abilities[] = "*";
+						
+			return $collection
+				// Model is null, only look for simple abilities similar to trait IsAbility scopeSimpleAbility
+				->when(is_null($model), function($collection){
+					return $collection->whereNull('entity_type');
+				})
+				// Model is not null, find by prepared $entity_types
+				->unless(is_null($model), function($collection) use ($model, $model_strict){
+					// Get entity type same as model, and * if not strict
+					$entity_types = [];
+					$entity_types[] = $model instanceof Model ? $model->getMorphClass() : $model;
+					if ($model_strict === false && $model !== "*") $entity_types[] = "*";
+					
+					return $collection->whereIn('entity_type', $entity_types);
+				})
+				
+				// Model exists, find by ID
+				->when($model instanceof Model && $model->exists, function($collection) use ($model, $model_strict){
+					return $collection->filter(function($item) use ($model, $model_strict){
+						return 
+							($item->entity_id == $model->getKey())
+								||
+							($model_strict === false)
+								||
+							($model_strict === true && $item->entity_id === null)
+							;
+					});
+				})
+				// Model doesn't exist
+				->unless($model instanceof Model && $model->exists, function($collection) use ($model_mode){
+					
+					return $collection
+						->when($model_mode == 'strict', function($collection){
+							return $collection->whereNull('entity_id');
+						})
+						->when($model_mode == 'specific', function($collection){
+							return $collection->whereNotNull('entity_id');
+						})
+						;
+				})
+				
+				->whereIn('name', $abilities);
+		};
+		
+	}
+	/**
+	 * Apply pivot to abilities so we can get pivot info
+	 */
+	protected function applyPivot($collection, ?Model $authority, $allowed = true){
 		$ability_ids = $collection->pluck('id');
 		
-		$roles_ids = $this->getRolesLookup($authority)['ids']->keys()->all();
 		$permissions = Models::table('permissions');
 		
 		$query = Models::permission()->query();
 		$query->whereIn( "{$permissions}.ability_id", $ability_ids);
 		$query->where("{$permissions}.forbidden", ! $allowed);
-		$query->where(function($query) use ($permissions, $authority, $roles_ids){
-			$query->where(function($query) use ($permissions, $authority){
-				// Direct permissions
-				$query->where($permissions.'.entity_type', $authority->getMorphClass());
-				$query->where($permissions.'.entity_id', $authority->getKey());
-			})->orWhere(function($query) use ($permissions, $roles_ids){
-				// Role permissions
-				 $query->where($permissions.".entity_type", Models::role()->getMorphClass());
-				 $query->whereIn($permissions.".entity_id", $roles_ids );
-			})->orWhere(function($query){
+		$query->where(function($query) use ($permissions, $authority){
+			if (!is_null($authority)){
+				if ($authority->getTable() != Models::table('roles')) {
+					$query->orWhere(function($query) use ($permissions, $authority){
+						// Role permissions
+						// TODO get all roles below too (where level is not null and level is below users)
+						$roles_ids = $this->getRolesLookup($authority)['ids']->keys()->all();
+						$query->where($permissions.".entity_type", Models::role()->getMorphClass());
+						$query->whereIn($permissions.".entity_id", $roles_ids );
+					});
+				}
+				$query->orWhere(function($query) use ($permissions, $authority){
+					// Direct permissions
+					$query->where($permissions.'.entity_type', $authority->getMorphClass());
+					$query->where($permissions.'.entity_id', $authority->getKey());
+				});
+			}
+			$query->orWhere(function($query) use ($permissions){
 				// Everyone permissions
-				$query->whereNull('entity_id');
+				$query->whereNull($permissions.".entity_id");
 			});
 		});
 		
@@ -147,9 +228,10 @@ abstract class BaseClipboard implements Contracts\Clipboard
 				$find = null;
 				// Incase a user has the same permission by multiple ways, priorize user, role then everyone
 				if ( 
-					( $find = $target->firstWhere('entity_type', $authority->getMorphClass() ) )
+					( $authority instanceof Model && $find = $target->firstWhere('entity_type', $authority->getMorphClass() ) )
 						||
-					( $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
+					// TODO arrange roles so that the highest level role is retrieved first
+					( $authority instanceof Model && $authority->getTable != Models::table('roles') && $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
 						|| 
 					( $find = $target->first() )
 				){
@@ -168,7 +250,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
      * @param  \Illuminate\Database\Eloquent\Model  $authority
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getForbiddenAbilities(Model $authority)
+    public function getForbiddenAbilities(?Model $authority)
     {
 		return $this->getAbilities($authority, false);
     }

@@ -189,11 +189,11 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
     /**
      * Get the given authority's abilities.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  \Illuminate\Database\Eloquent\Model|null  $authority
      * @param  bool  $allowed
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getAbilities(Model $authority, $allowed = true)
+    public function getAbilities(?Model $authority, $allowed = true)
     {
         $key = $this->getCacheKey($authority, 'abilities', $allowed);
 
@@ -211,11 +211,11 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
     /**
      * Get a fresh copy of the given authority's abilities.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  \Illuminate\Database\Eloquent\Model|null  $authority
      * @param  bool  $allowed
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getFreshAbilities(Model $authority, $allowed)
+    public function getFreshAbilities(?Model $authority, $allowed)
     {
         return parent::getAbilities($authority, $allowed);
     }
@@ -275,10 +275,10 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
     /**
      * Clear the cache for the given authority.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  \Illuminate\Database\Eloquent\Model|null  $authority
      * @return $this
      */
-    public function refreshFor(Model $authority)
+    public function refreshFor(?Model $authority)
     {
         $this->cache->forget($this->getCacheKey($authority, 'abilities', true));
         $this->cache->forget($this->getCacheKey($authority, 'abilities', false));
@@ -306,18 +306,18 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
     /**
      * Get the cache key for the given model's cache type.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  \Illuminate\Database\Eloquent\Model|null  $model
      * @param  string  $type
      * @param  bool  $allowed
      * @return string
      */
-    protected function getCacheKey(Model $model, $type, $allowed = true)
+    protected function getCacheKey(?Model $model, $type, $allowed = true)
     {
         return implode('-', [
             $this->tag(),
             $type,
-            $model->getMorphClass(),
-            $model->getKey(),
+            !is_null($model) ? $model->getMorphClass() : 'e', // everyone
+            !is_null($model) ? $model->getKey() : 'e',
             $allowed ? 'a' : 'f',
         ]);
     }

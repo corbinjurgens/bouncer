@@ -9,7 +9,7 @@ use Corbinjurgens\Bouncer\Conductors\Lazy;
 trait ConductsAbilities
 {
 	/**
-	 * Declare attributes for the pivot before running to() or other conducting function, 
+	 * Declare attributes for the pivot before running to() or other conducting function
 	 * Pass an array, such as 
 	 * ['pivot_options' => ['limit' => 2]]
 	 * To change the pivots attributes when attatching / syncing

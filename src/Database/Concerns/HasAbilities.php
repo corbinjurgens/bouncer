@@ -59,6 +59,18 @@ trait HasAbilities
     }
 
     /**
+     * Get all of the model's directly allowed abilities.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDirectAbilities()
+    {
+        return Container::getInstance()
+            ->make(Clipboard::class)
+            ->getDirectAbilities($this);
+    }
+
+    /**
      * Get all of the model's allowed abilities.
      *
      * @return \Illuminate\Database\Eloquent\Collection
@@ -68,6 +80,18 @@ trait HasAbilities
         return Container::getInstance()
             ->make(Clipboard::class)
             ->getAbilities($this, false);
+    }
+
+    /**
+     * Get all of the model's directly allowed abilities.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDirectForbiddenAbilities()
+    {
+        return Container::getInstance()
+            ->make(Clipboard::class)
+            ->getDirectAbilities($this, false);
     }
 
     /**

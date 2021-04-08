@@ -86,19 +86,28 @@ trait ScopesModel
 	
 	private $special_scope = null;
 	static $special_abilities = [
-		'claim',
+		'__claim',
 	];
 	/**
 	 * Eg set to 'claim' mode to only modify the special ability,
 	 * Otherwise it will ignore all special abilities as declared in static $special_abilities
 	 * Special abilities are actually stored with '__' prefix to not conflict with a users own abilities of the 
-	 * same name. It will auto prefix upon query, so do not input here with prefix
+	 * same name. You can pass with or without prefix
 	 */
-	public function specialScope($string_or_array = null){
-		if (!is_null($string_or_array)){
-			$string_or_array = is_array($string_or_array) ? $string_or_array : [$string_or_array];
+	public function specialScope($string_or_array_or_bool = null){
+		if ($string_or_array_or_bool === true){
+			$string_or_array_or_bool = self::$special_abilities;
 		}
-		$this->special_scope = $string_or_array;
+		else if ($string_or_array_or_bool === false){
+			$string_or_array_or_bool = null;
+		}
+		else if (!is_null($string_or_array_or_bool)){
+			$string_or_array_or_bool = is_array($string_or_array_or_bool) ? $string_or_array_or_bool : [$string_or_array_or_bool];
+			foreach($string_or_array_or_bool as $key => $ability){
+				$string_or_array_or_bool[$key] = \Str::startsWith($ability, '__') ? $ability : '__' . $ability;
+			}
+		}
+		$this->special_scope = $string_or_array_or_bool;
 		return $this;
 	}
 	public function resetSpecialScope(){
@@ -172,15 +181,9 @@ trait ScopesModel
 			}
 			
 			if (is_array($this->special_scope)){
-				$special_scope = array_map(function($item){
-					return '__' . $item;
-				}, $this->special_scope);
-				$relation->whereIn("$table.name", $special_scope);
+				$relation->whereIn("$table.name", $this->special_scope);
 			}else{
-				$special_scope = array_map(function($item){
-					return '__' . $item;
-				}, self::$special_abilities);
-				$relation->whereNotIn("$table.name", $special_scope);
+				$relation->whereNotIn("$table.name", self::$special_abilities);
 			}
 		};
 	}

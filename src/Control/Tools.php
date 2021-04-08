@@ -11,7 +11,7 @@ trait Tools
 {
 	
 	
-	static function groupPermissions($permissions){
+	public static function groupPermissions($permissions){
 		return $permissions->groupBy(['entity_type', 'entity_id'])
 			->map(function($item){
 				return $item->map(function($item){
@@ -20,7 +20,7 @@ trait Tools
 			});
 	}
 	
-	public function optionsArray($array, $defaults){
+	public static function optionsArray($array, $defaults){
 		if (!is_array($array)) return [];
 		$processed = [];
 		foreach($array as $key => $value){

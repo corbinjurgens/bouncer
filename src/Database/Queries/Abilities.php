@@ -16,12 +16,17 @@ class Abilities
      * @param  bool  $allowed
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function forAuthority(Model $authority, $allowed = true)
+    public static function forAuthority(?Model $authority, $allowed = true, $direct_only = false)
     {
-        return Models::ability()->where(function ($query) use ($authority, $allowed) {
-            $query->whereExists(static::getRoleConstraint($authority, $allowed));
-            $query->orWhereExists(static::getAuthorityConstraint($authority, $allowed));
-            $query->orWhereExists(static::getEveryoneConstraint($allowed));
+        return Models::ability()->where(function ($query) use ($authority, $allowed, $direct_only) {
+			if (!is_null($authority)){
+				if ($authority->getTable() != Models::table('roles') && $direct_only === false) $query->orWhereExists(static::getRoleConstraint($authority, $allowed));
+				$query->orWhereExists(static::getAuthorityConstraint($authority, $allowed));
+				
+			}
+			if ($direct_only === false  || is_null($authority)){
+				$query->orWhereExists(static::getEveryoneConstraint($allowed));
+			}
         });
     }
 
@@ -31,9 +36,9 @@ class Abilities
      * @param  \Illuminate\Database\Eloquent\Model  $authority
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function forbiddenForAuthority(Model $authority)
+    public static function forbiddenForAuthority(?Model $authority, $direct_only = false)
     {
-        return static::forAuthority($authority, false);
+        return static::forAuthority($authority, false, $direct_only);
     }
 
     /**

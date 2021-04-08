@@ -28,6 +28,13 @@ class Models
     protected static $ownership = [];
 
     /**
+     * Map of ownership for model queries, if a closure is used for ownership.
+     *
+     * @var array
+     */
+    protected static $ownership_closure = [];
+
+    /**
      * Map of bouncer's tables.
      *
      * @var array
@@ -173,19 +180,56 @@ class Models
 
     /**
      * Register an attribute/callback to determine if a model is owned by a given authority.
+	 * If you use a closure for $attribute, you must also use one for $query_closure, which takes $query argument of an ownable item, and $authority
+	 * eg. function($query, $authority){$query->where('user_id', $authority->getKey())}
      *
      * @param  string|\Closure  $model
      * @param  string|\Closure|null  $attribute
+     * @param  \Closure|null  $query_closure
      * @return void
      */
-    public static function ownedVia($model, $attribute = null)
+    public static function ownedVia($model, $attribute = null, $query_closure = null)
     {
         if (is_null($attribute)) {
             static::$ownership['*'] = $model;
+            static::$ownership_closure['*'] = $query_closure;
         }
-
+		
         static::$ownership[$model] = $attribute;
+        static::$ownership_closure[$model] = $query_closure;
     }
+	
+    /**
+     * Auto apply owned via query. This should only be applied to a ownable model, and used in situations you know a table to be ownable,
+	 * or you know a user can own a specific table
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return void
+     */
+	public static function applyOwnedVia($query, $authority, $model){
+		$owned_by = self::getOwnedBy($authority, $model, True);
+		if ($owned_by instanceof \Closure){
+			$query->where( self::ownedViaClosure($owned_by, $authority) );
+		}else{
+			$query->where($owned_by, $authority->getKey());
+		}
+	}
+	
+	
+    /**
+     * If a query closure has been given for ownedVia, itll be used here
+     *
+     * @param \Closure $closure
+     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @return void
+     */
+	public static function ownedViaClosure(\Closure $closure, $authority){
+		return function($query) use ($authority, $closure){
+			return $closure($query, $authority);
+		};
+	}
 
     /**
      * Determines whether the given model is owned by the given authority.
@@ -196,18 +240,34 @@ class Models
      */
     public static function isOwnedBy(Model $authority, Model $model)
     {
-        $type = get_class($model);
-
-        if (isset(static::$ownership[$type])) {
-            $attribute = static::$ownership[$type];
-        } elseif (isset(static::$ownership['*'])) {
-            $attribute = static::$ownership['*'];
-        } else {
-            $attribute = strtolower(static::basename($authority)).'_id';
-        }
-
+		$attribute = static::getOwnedBy($authority, $model);
+		
         return static::isOwnedVia($attribute, $authority, $model);
     }
+	
+	public static function getOwnedBy(Model $authority, Model $model, $query = false){
+		
+		$type = get_class($model);
+		
+		$target = null;
+		
+        if (isset(static::$ownership[$type])) {
+			$target = $type;
+        } elseif (isset(static::$ownership['*'])) {
+			$target = '*';
+        }
+		
+		if ( !is_null($target) ){
+			$attribute = static::$ownership[$target];
+		}else{
+			$attribute = strtolower(static::basename($authority)).'_id';
+		}
+		
+		if ($query === true && !is_null($target)){
+			return static::$ownership_closure[$target] ?? $attribute;
+		}
+		return $attribute;
+	}
 
     /**
      * Determines ownership via the given attribute.

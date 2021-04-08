@@ -66,7 +66,7 @@ trait AssociatesAbilities
     protected function getAssociatedAbilityIds($authority, array $abilityIds = null, $return_raw = false, $scope = true)
     {
         if (is_null($authority)) {
-            return $this->getAbilityIdsAssociatedWithEveryone($abilityIds, $return_raw);
+            return $this->getAbilityIdsAssociatedWithEveryone($abilityIds, $return_raw, $scope);
         }
 
         $relation = $authority->abilities();
@@ -93,7 +93,7 @@ trait AssociatesAbilities
      * @param  array  $abilityIds
      * @return array
      */
-    protected function getAbilityIdsAssociatedWithEveryone(array $abilityIds = null, $return_raw = false)
+    protected function getAbilityIdsAssociatedWithEveryone(array $abilityIds = null, $return_raw = false, $scope = true)
     {
         $query = Models::permission()->query()
             ->whereNull('entity_id')
@@ -101,10 +101,12 @@ trait AssociatesAbilities
 				$query->whereIn('ability_id', $abilityIds);
 			})
             ->where('forbidden', '=', $this->forbidding);
-			
-		$query->whereHas('ability', function($relation){
-			$this->scopeModel($relation);
-		});
+		
+		if ($scope === true) {
+			$query->whereHas('ability', function($relation){
+				$this->scopeModel($relation);
+			});
+		}
 		
 		
         Models::scope()->applyToRelationQuery($query, Models::permission()->getTable());
@@ -229,21 +231,6 @@ trait AssociatesAbilities
 			
 			// Get ids that currently exists with model scoping applied
 			$relation = $this->getAssociatedAbilityIds($authority, null, true);
-			
-			// With the filtered_sync macro the following should no longer be necessary
-			//$exists = $relation->get(["$table.id"])->pluck('id')->all();
-			//
-			// Get all associated ids, that are outside of those currently applied
-			// Which is essentially the inverse of the model scope
-			//$exists_outside_scope = $this->getAssociatedAbilityIds($authority, null, true, false)
-			//	->whereNotIn("$table.id", $exists)
-			//	->get(["$table.id"])->pluck('id')->all();
-			//	
-			// Add all ids back that are outside the current model scoping so they are unchanged
-			// Pivot scoping is already applied from getAssociatedAbilityIds
-			//$difference = array_diff($exists_outside_scope, $ids);
-			//$prepared_ids = $prepared_ids + $difference;
-			//$relation->sync($prepared_ids);
 			
 			// Macroed in BouncerServiceProvider. $this->scopeModelClosure() is added to reuse same queries 
 			// and check the prepared ids match and should be added

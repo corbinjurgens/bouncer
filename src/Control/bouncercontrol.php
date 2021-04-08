@@ -41,11 +41,18 @@ return [
 								// to have permissions to it, and also check if the user has a claim limit and if they reached it deny further claim
 		'claim_minimum' => 0, //
 		
-		// 
+		// In each table declare extra permission abilties outside of usual 'edit' and 'delete', which can be added below inside 'table_abilities'
 		'abilities' => [
 			// 'publish',
 			// 'duplcate' => ['specific' => false]
-		],// extra permission abiltiies outside of usual 'edit' and 'delete', which can be added below inside 'table_abilities'
+		],
+		// In each table you can declare which abilities should be excluded from the default table_abilities, eg you want a log table that has view, but doesn't have create, edit, delete
+		// Should only be given as indexed array, not with options
+		'abilities_except' => [
+			// 'create',
+			// 'edit',
+			// 'delete'
+		]
 	
 	],
 	
@@ -64,6 +71,18 @@ return [
 		],
 		...,
 		...,
+		
+		// You can have an 'all' tabla as * to allow a user to view any table, or do anything to any table etc
+		// Does not support specific, or forbid_specific
+		'*' => [
+			'specific_permissions' => false, // DO NOT SET TRUE
+			'forbid_specific_permissions' => false, // DO NOT SET TRUE
+			
+			'general_permissions' => true,
+			'anything_permissions' => true,
+			
+		]
+		
 		*/
     ],
 	
