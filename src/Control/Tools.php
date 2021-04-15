@@ -3,7 +3,6 @@
 namespace Corbinjurgens\Bouncer\Control;
 use Cache;
 use Auth;
-use App\Models\Table;
 
 use Corbinjurgens\Bouncer\Control;
 

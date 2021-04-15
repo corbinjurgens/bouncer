@@ -119,13 +119,14 @@ class Abilities
 
     /**
      * Add the role inheritence "where" clause to the given query.
+	 * Shared with Corbinjurgens\Bouncer\Database\Queries\Roles
      *
      * @param  \Illuminate\Database\Query\Builder  $query
      * @param  \Illuminate\Database\Eloquent\Model  $authority
      * @param  string  $roles
      * @return \Closure
      */
-    protected static function addRoleInheritCondition(Builder $query, Model $authority, $roles)
+    public static function addRoleInheritCondition(Builder $query, Model $authority, $roles)
     {
         $query->orWhere('level', '<', function ($query) use ($authority, $roles) {
             $query->selectRaw('max(level)')
@@ -138,11 +139,12 @@ class Abilities
 
     /**
      * Get a constraint for roles that are assigned to the given authority.
+	 * Shared with Corbinjurgens\Bouncer\Database\Queries\Roles
      *
      * @param  \Illuminate\Database\Eloquent\Model  $authority
      * @return \Closure
      */
-    protected static function getAuthorityRoleConstraint(Model $authority)
+    public static function getAuthorityRoleConstraint(Model $authority)
     {
         return function ($query) use ($authority) {
             $pivot  = Models::table('assigned_roles');

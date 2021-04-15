@@ -5,8 +5,38 @@ namespace Corbinjurgens\Bouncer\Database\Queries;
 use Corbinjurgens\Bouncer\Helpers;
 use Corbinjurgens\Bouncer\Database\Models;
 
+use Illuminate\Database\Eloquent\Model;
+
 class Roles
 {
+	
+    /**
+     * Get roles for the authority. Essentially same as relationship 
+	 * but also allows retrieving effective roles, ie. roles that are levels below
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  bool  $allowed
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function forAuthority(Model $authority, $indirect = false)
+    {
+        return Models::role()->where(function ($query) use ($authority, $indirect) {
+			$roles  = Models::table('roles');
+			
+			$query->orWhereIn("$roles.id", function($query) use ($roles, $authority){
+				$query->select("$roles.id");
+				Abilities::getAuthorityRoleConstraint($authority)($query);
+				
+			});
+			
+			if ($indirect === true){
+				Abilities::addRoleInheritCondition($query->getQuery(), $authority, $roles);
+			}
+        });
+    }
+	 
+	 
+	 
     /**
      * Constrain the given query by the provided role.
      *

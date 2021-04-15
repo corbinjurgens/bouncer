@@ -57,6 +57,17 @@ trait HasRoles
     }
 
     /**
+     * Get roles with the option of also getting indirect roles,
+	 * Does not cache
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getEffectiveRoles()
+    {
+		return (new RolesQuery)->forAuthority($this, true)->get();
+    }
+
+    /**
      * Assign the given roles to the model.
      *
      * @param  \Illuminate\Database\Eloquent\Model|string|array  $roles
