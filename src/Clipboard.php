@@ -20,7 +20,12 @@ class Clipboard extends BaseClipboard
      * @return int|bool|null
      */
     public function checkGetId(Model $authority, $ability, $model = null)
-    {
+    {	
+		// Check if the ability is a function ability, and pass it as that instead
+		if (in_array($ability, self::$function_abilities)){
+			return $this->processFunctionAbility($authority, $ability, $model);
+		}
+		
         if ($this->isForbidden($authority, $ability, $model)) {
             return false;
         }

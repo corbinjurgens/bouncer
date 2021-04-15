@@ -29,6 +29,49 @@ class Abilities
 			}
         });
     }
+	
+    /**
+     * Get a query for the expected pivots to match with forAuthority results
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $authority
+     * @param  bool  $allowed
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function forAuthorityPivot(?Model $authority, $allowed = true, $direct_only = false)
+    {
+		$abilities   = Models::table('abilities');
+		$permissions = Models::table('permissions');
+		$roles       = Models::table('roles');
+		
+        return Models::permission()
+			->select("$permissions.*", "$roles.level as role_level")
+			->leftJoin($roles, function($join) use ($roles, $permissions){
+				$join->on("$roles.id", '=', "$permissions.entity_id")
+					->where("$permissions.entity_type", Models::role()->getMorphClass());
+			})
+			->join($abilities, $abilities.'.id', '=', $permissions.'.ability_id')
+			->where(function ($query) use ($authority, $allowed, $direct_only, $permissions) {
+				if (!is_null($authority)){
+					if ($authority->getTable() != Models::table('roles') && $direct_only === false){
+						$query->orWhereIn("$permissions.id", function($query) use ($authority, $allowed, $permissions){
+							$query->select("$permissions.id");
+							static::getRoleConstraint($authority, $allowed)($query);
+						});
+					} 
+					$query->orWhereIn("$permissions.id", function($query) use ($authority, $allowed, $permissions){
+						$query->select("$permissions.id");
+						static::getAuthorityConstraint($authority, $allowed)($query);
+					});
+					
+				}
+				if ($direct_only === false  || is_null($authority)){
+					$query->orWhere(function($query) use ($allowed, $permissions){
+						static::getEveryoneConstraint($allowed, true)($query);
+						Models::scope()->applyToRelationQuery($query, $permissions);
+					});
+				}
+        });
+    }
 
     /**
      * Get a query for the authority's forbidden abilities.
@@ -146,21 +189,28 @@ class Abilities
     /**
      * Get a constraint for abilities that have been granted to everyone.
      *
-     * @param  bool  $allowed
+     * @param  bool  $alloweds
+	 * @param  bool  $direct
      * @return \Closure
      */
-    protected static function getEveryoneConstraint($allowed)
+    protected static function getEveryoneConstraint($allowed, $direct = false)
     {
-        return function ($query) use ($allowed) {
+        return function ($query) use ($allowed, $direct) {
             $permissions = Models::table('permissions');
             $abilities   = Models::table('abilities');
-
-            $query->from($permissions)
-                  ->whereColumn("{$permissions}.ability_id", "{$abilities}.id")
+			
+			if ($direct === false){
+				$query = $query->from($permissions)
+                  ->whereColumn("{$permissions}.ability_id", "{$abilities}.id");
+			}
+			$query
                   ->where("{$permissions}.forbidden", ! $allowed)
-                  ->whereNull('entity_id');
-
-            Models::scope()->applyToRelationQuery($query, $permissions);
+                  ->whereNull("{$permissions}.entity_id");
+			
+			if ($direct === false){
+				Models::scope()->applyToRelationQuery($query, $permissions);
+			}
+            
         };
     }
 }

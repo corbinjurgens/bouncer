@@ -52,9 +52,16 @@ class BouncerServiceProvider extends ServiceProvider
             $this->publishControlConfig();
         }
     }
+	
+	/**
+	 * Register special macro for syncing abilities
+	 *
+	 * @return void
+	 */
 	protected function registerRelationMacros(){
 		BelongsToMany::macro('filtered_sync', $this->relationMacro());
 	}
+	
 	/**
 	 * Use just as normal sync(). It will automatically only detach items that are missing match the filtered results.
 	 * Optionally, use a query closure as $compare to double check that the $ids you are trying to sync are matching. For best results, use
@@ -99,7 +106,7 @@ class BouncerServiceProvider extends ServiceProvider
 				count($changes['updated'])) {
 				$this->touchIfTouching();
 			}
-
+			
 			return $changes;
 		};
 	}

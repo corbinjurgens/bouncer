@@ -131,12 +131,14 @@ abstract class BaseClipboard implements Contracts\Clipboard
 	 * @param \Illuminate\Database\Eloquent\Model|string|null  $model // null, or "*" accepted
 	 * @param bool $model_strict // Whether it includes * entity_type and null entity_id
 	 * @param string|null $model_mode // 'strict', 'specific' or null
-	 * @param array $abilities
+	 * @param array|null $abilities
+	 * @param array|null $abilities_except
 	 * @param bool $ability_strict
+	 * @param bool|null $special_abilities
 	 */
-	public static function collectionPipe($model, $model_strict = false, $model_mode = null, array $abilities = null, $ability_strict = false){
+	public static function collectionPipe($model, bool $model_strict = false, string $model_mode = null, array $abilities = null, array $abilities_except = null, bool $ability_strict = false, bool $special_abilities = null){
 		
-		return function($collection) use ($model, $model_strict, $model_mode, $abilities, $ability_strict){
+		return function($collection) use ($model, $model_strict, $model_mode, $abilities, $abilities_except, $ability_strict, $special_abilities){
 			
 			// Get name same as abilities, and * if not strict
 			if ($ability_strict === false && is_array($abilities) && !in_array("*", $abilities)) $abilities[] = "*";
@@ -146,7 +148,7 @@ abstract class BaseClipboard implements Contracts\Clipboard
 				->when(is_null($model), function($collection){
 					return $collection->whereNull('entity_type');
 				})
-				// Model is not null, find by prepared $entity_types
+				// Otherwise, find by prepared $entity_types
 				->unless(is_null($model), function($collection) use ($model, $model_strict){
 					// Get entity type same as model, and * if not strict
 					$entity_types = [];
@@ -156,18 +158,20 @@ abstract class BaseClipboard implements Contracts\Clipboard
 					return $collection->whereIn('entity_type', $entity_types);
 				})
 				
+				
+				
 				// Model exists, find by ID
-				->when($model instanceof Model && $model->exists, function($collection) use ($model, $model_strict){
+				->when(($model instanceof Model && $model->exists), function($collection) use ($model, $model_strict){
 					return $collection->filter(function($item) use ($model, $model_strict){
 						return 
 							($item->entity_id == $model->getKey())
-								||
-							($model_strict === false && $item->entity_id === null)
+							//	||
+							//($model_strict === false && $item->entity_id === null)
 							;
 					});
 				})
-				// Model doesn't exist
-				->unless($model instanceof Model && $model->exists, function($collection) use ($model_mode){
+				// Otherwise, apply $model_mode
+				->unless(($model instanceof Model && $model->exists), function($collection) use ($model_mode){
 					
 					return $collection
 						->when($model_mode == 'strict', function($collection){
@@ -179,15 +183,36 @@ abstract class BaseClipboard implements Contracts\Clipboard
 						;
 				})
 				
+				
+				
+				
+				// Special abilities should be filtered in or out
+				->when(is_bool($special_abilities), function($collection) use ($special_abilities){
+					return $collection->filter(function($collection) use ($special_abilities){
+						// Special abilities start with __
+						return (\Str::startsWith($item->name, '__') == $special_abilities);
+					});
+				})
+				
+				
+				
+				// Abilities in filter
 				->when(is_array($abilities), function($collection) use ($abilities){
 					return $collection->whereIn('name', $abilities);
+				})
+				->when(is_array($abilities_except), function($collection) use ($abilities_except){
+					return $collection->whereNotIn('name', $abilities_except);
 				});
 		};
 		
 	}
 	/**
 	 * Apply pivot to abilities so we can get pivot info
-	 * TODO its not perfect, and doesn't check roles lower than current role etc. Perhaps could make use of some of the queries elsewhere
+	 *
+	 * @param \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model $collection
+	 * @param \Illuminate\Database\Eloquent\Model|null $authority
+	 * @param bool $allowed
+	 * @return \Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model
 	 */
 	protected function applyPivot($collection, ?Model $authority, $allowed = true){
 		$single_item = false;
@@ -199,45 +224,20 @@ abstract class BaseClipboard implements Contracts\Clipboard
 		
 		$permissions = Models::table('permissions');
 		
-		$query = Models::permission()->query();
-		$query->whereIn( "{$permissions}.ability_id", $ability_ids);
-		$query->where("{$permissions}.forbidden", ! $allowed);
-		$query->where(function($query) use ($permissions, $authority){
-			if (!is_null($authority)){
-				if ($authority->getTable() != Models::table('roles')) {
-					$query->orWhere(function($query) use ($permissions, $authority){
-						// Role permissions
-						// TODO get all roles below too (where level is not null and level is below users)
-						$roles_ids = $this->getRolesLookup($authority)['ids']->keys()->all();
-						$query->where($permissions.".entity_type", Models::role()->getMorphClass());
-						$query->whereIn($permissions.".entity_id", $roles_ids );
-					});
-				}
-				$query->orWhere(function($query) use ($permissions, $authority){
-					// Direct permissions
-					$query->where($permissions.'.entity_type', $authority->getMorphClass());
-					$query->where($permissions.'.entity_id', $authority->getKey());
-				});
-			}
-			$query->orWhere(function($query) use ($permissions){
-				// Everyone permissions
-				$query->whereNull($permissions.".entity_id");
-			});
-		});
-		
-		Models::scope()->applyToModelQuery($query, $permissions);
-		
-		$pivots = $query->get()->groupBy('ability_id');
+		$pivots = Abilities::forAuthorityPivot($authority, $allowed)->get()->groupBy('ability_id');
 		
 		foreach($collection as &$item){
 			if ($pivots->has($item->getKey())){
-				$target = $pivots->get( $item->getKey() );
+				$target = $pivots->get( $item->getKey() )->sort(function($a, $b){
+					// Sort role_level to top so itll be found first
+					return $a->role_level === $b->role_level ? $b->id <=> $a->id : $b->role_level <=> $a->role_level;
+				});
 				$find = null;
+				
 				// Incase a user has the same permission by multiple ways, priorize user, role then everyone
 				if ( 
 					( $authority instanceof Model && $find = $target->firstWhere('entity_type', $authority->getMorphClass() ) )
 						||
-					// TODO arrange roles so that the highest level role is retrieved first
 					( $authority instanceof Model && $authority->getTable() != Models::table('roles') && $find = $target->firstWhere('entity_type', Models::role()->getMorphClass() ) )
 						|| 
 					( $find = $target->first() )

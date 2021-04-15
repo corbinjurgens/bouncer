@@ -80,7 +80,6 @@ class SyncsRolesAndAbilities
 			// TODO allow assoc array as currently its ability names as keys only
 			$abilityData = $this->getFullAbilities($abilities, $this->getScopeModel());
 			$this->syncClearAbilities( array_column($abilityData, 'id') , $options['forbidden']);
-			
 			$instance = new $associateClass($this->authority);
 			$this->passModelScope($instance);
 			$instance->associateAbilitiesDirectly($abilityData);
@@ -123,9 +122,10 @@ class SyncsRolesAndAbilities
 			$relation->detach($ids);
 		}else{
 			$instance = new $associateClass();
+			$this->passModelScope($instance);
 			$query = $instance->getAbilityIdsAssociatedWithEveryoneQuery();
-			$query->whereNotIn('ability_id', $keys);
-			$query->delete();
+				$query->whereNotIn('ability_id', $keys);
+				$query->delete();
 		}
 
     }

@@ -72,7 +72,7 @@ return [
 		...,
 		...,
 		
-		// You can have an 'all' tabla as * to allow a user to view any table, or do anything to any table etc
+		// You can have an 'all' table as * to allow a user to view any table, or do anything to any table etc
 		// Does not support specific, or forbid_specific
 		'*' => [
 			'specific_permissions' => false, // DO NOT SET TRUE
@@ -139,7 +139,24 @@ return [
 		]
 	],
 	
-	// Free abilties not connected to a table or an item TODO
+    /*
+    |--------------------------------------------------------------------------
+    | Simple Abilities
+    |--------------------------------------------------------------------------
+    |
+    | Declare free abilties not connected to a table. By default applies to all authority types but 
+	| it can accept options to limit by setting one to false
+	|
+	|	user bool
+	| 	role bool
+	|	everyone bool
+	|
+	|	allow bool
+	|	forbid bool
+	|
+	|	minimum null|integer
+    |
+    */
 	'abilities' => [
 		// 'make_user_admin',
 	],

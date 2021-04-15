@@ -19,6 +19,9 @@ trait DealsWithTables
 	use Tools;
 	
 	public static function getTableInfo($table_name = null){
+		if ($table_name instanceof Model){
+			$table_name = $table_name->getMorphClass();
+		}
 		$fetch = function(){
 			$tables = config('bouncercontrol.tables', []);
 			$table_defaults = config('bouncercontrol.table_defaults', []);
@@ -26,9 +29,7 @@ trait DealsWithTables
 				$table = array_replace($table_defaults, $table);
 			}
 			return collect($tables);
-			//return Table::all()->keyBy('name');
 		};
-		//$tables = Cache::remember('table_info', 60 * 1, $fetch);
 		$tables = $fetch();
 		return 
 			!is_null($table_name) ? 
@@ -130,12 +131,12 @@ trait DealsWithTables
 	 ]
 	 * Pass null for mode, or indexed array only. If tables have values, the tables values will be prioritized
 	 */
-	public function only($tables = null, $modes = null){
+	public function tablesOnly($tables = null, $modes = null){
 		$this->tables = is_string($tables) ? [$tables] : $tables;
 		$this->modes = is_string($modes) ? [$modes] : $modes;
 		return $this;
 	}
-	private function getOnly(){
+	private function getTablesOnly(){
 		if (!is_array($this->tables)){
 			return null;
 		}
@@ -153,7 +154,7 @@ trait DealsWithTables
 		return $only;
 	}
 	/**
-	 * Pass result of getOnly, with table string, and the mode you want to test (eg 'general_permissions', 'forbid_general_permissions')
+	 * Pass result of getTablesOnly, with table string, and the mode you want to test (eg 'general_permissions', 'forbid_general_permissions')
 	 * To check if should get/process the mode
 	 */
 	private function checkModeFromOnly($only, $table = null, $mode = null){

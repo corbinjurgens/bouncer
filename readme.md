@@ -244,7 +244,7 @@ class Post extends Model {
 }
 ```
 
-When querying a model, get only items where the current user (as by auth()->user()) can do the given action
+When querying a model, get only items where the current user (as by Auth::user()) can do the given action
 ```php
 $posts = Post::whereCan('view')->get();
 ```
@@ -256,7 +256,7 @@ $posts = Post::whereCan(['view', 'edit'])->get();
 
 ## Extended usage
 
-You can declare what user you are searching as via the second parameter. Passing null will default to auth()->user()
+You can declare what user you are searching as via the second parameter. Passing null will default to Auth::user()
 ```php
 $user = User::find(100);
 $posts = Post::whereCan(['view', 'edit'], $user)->get();
@@ -272,8 +272,29 @@ $bypass = function($user, $ability, $attributes){
 	// Model can be found at $attributes[0]
 	// It will loop over each ability if you pass multiple and if any pass true it will break
 };
-$posts = Post::whereCan(['view', 'edit'], null, $bypass)->get(); // In this example passing null as user, so it will default to current user via auth()->user()
+$posts = Post::whereCan(['view', 'edit'], null, $bypass)->get(); // In this example passing null as user, so it will default to current user via Auth::user()
 
+```
+
+You can directly access the whereCan closure via Post::whereCanClosure(...) and it accepts same variables as whereCan scope, which allows you to do such as the following.
+This example will get comments that are not private, or where the user can edit the post they are attached to
+```php
+$comments = Comment::where(function($query){
+	$query->orWhere('private', false);
+	
+	// This is a manual query, but it could also be replaced with
+	// $query->orWhereHas('post', Post::whereCanClosure(['edit']));
+	// if your relationships are mapped
+	$query->orWhereIn('post_id', function($query){
+		$query->select('id');
+		$query->from('posts');
+				
+		$query->where(Post::whereCanClosure(['edit']));
+				
+	});
+	
+			
+});
 ```
 
 # Pivot columns

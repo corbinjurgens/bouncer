@@ -137,12 +137,12 @@ class GetPermissions
 	 */
 	public function getTablePermissions($get_old = true, $old = 'permissions')
 	{
-		$previous = null;
+		$previous = [];
 		if ($get_old === true){
-			$previous = request()->old($old);
+			$previous = request()->old($old, []);
 		}
 		
-		$only = $this->getOnly();
+		$only = $this->getTablesOnly();
 		$permissions = [];
 		$tables = self::getTableInfo();
 		if ( is_array($only) ){
@@ -154,6 +154,19 @@ class GetPermissions
 			}
 		}
 		return $permissions;
+	}
+	
+	/**
+	 * Get simple permissions
+	 */ 
+	public function getPermissions($get_old = true, $old = 'simple_permissions'){
+		$previous = [];
+		if ($get_old === true){
+			$previous = request()->old($old, []);
+		}
+		
+		return $this->getPermission(null, $previous);
+		
 	}
 	
 	/**
@@ -186,13 +199,13 @@ class GetPermissions
 		],
 		...,
 	]
-	 * Ensure if you originally got the tablePermissions using an only() selection,
-	 * you also use the same only() selection to put it back to avoid clearning
+	 * Ensure if you originally got the tablePermissions using an tablesOnly() selection,
+	 * you also use the same tablesOnly() selection to put it back to avoid clearning
 	 * a users entire permissions from the missing tables
 	 */
-	public function updateAbilitiesRequest($request){
+	public function updateTablePermissionsRequest($request){
 		// In case all items from one section have been deleted and we need to add it back so it will be processed;
-		// And remove items that should not be allowed based on only() settings
+		// And remove items that should not be allowed based on tablesOnly() settings
 		$compare = $this->getTablePermissions(false);
 		$request = array_intersect_key($request, $compare);
 		foreach($compare as $table => $data){
@@ -203,7 +216,6 @@ class GetPermissions
 				}
 			}
 		}
-		
 		
 		// Process the request
 		foreach($request as $table => $data){
@@ -234,7 +246,36 @@ class GetPermissions
 		}
 		
 	}
-
+	/**
+	 * Update simple permissions from request
+	 */
+	public function updatePermissionsRequest($request){
+		// In case all items from one section have been deleted and we need to add it back so it will be processed;
+		// And remove items that should not be allowed based on only() settings
+		$compare = $this->getPermissions(false);
+		$request = array_intersect_key($request, $compare);
+		foreach($compare as $mode => $data){
+			if (!isset($request[$mode])){
+				$request[$mode] = [];
+			}
+		}
+		
+		// Process the request
+		foreach($request as $mode => $data){
+			// Only touch these abilities as they are the ones given from getPermission()
+			// This prevents user hacking abilities or prevents abilities accidentally deleting
+			// abilities that exist but aren't shown in ui
+			$name_only = array_intersect(self::getAbilities($mode, $this->target_type), array_column($compare[$mode] ?? [], 'name'));
+			$this->processSimple($mode == 'forbid', $data, $name_only);
+		}
+			
+		if ($this->target_type == 'user'){
+			\Bouncer::refreshFor($this->target_authority);
+		}else{
+			\Bouncer::refresh();
+		}
+		
+	}
 	
 	
 	

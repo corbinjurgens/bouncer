@@ -6,6 +6,8 @@ namespace Corbinjurgens\Bouncer\Control\Concerns;
 use Corbinjurgens\Bouncer\Control as c;
 use Corbinjurgens\Bouncer\Database\Models;
 
+use Corbinjurgens\Bouncer\Clipboard;
+
 
 use Corbinjurgens\Bouncer\Control\Tools;
 use Illuminate\Database\Eloquent\Model;
@@ -14,43 +16,55 @@ trait ProcessPermissions
 {
 	
 	
-	private function getTablePermission($table, $data, $only = null, $old = null){
+	private function getTablePermission($table, $data, $only = null, $old = []){
 		$permission = [];
 		
 		$run = [
-			// 0 active						// 1 minimum					// 2 type		// 3 mode				// 4 closure
-			['claim_permissions',			'claim_minimum',				'special',		'claim',				function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNull('entity_id')		->where('name', '__claim'); }],
+			// 0 name				// 1 type		// 2 closure
+			['claim',				'special',		function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNull('entity_id')		->where('name', '__claim'); }],
 			
-			['general_permissions',			'general_minimum',				'general',		'general',				function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNull('entity_id')		->whereIn('name', $list); }],
-			['forbid_general_permissions',	'forbid_general_minimum',		'general',		'forbid_general',		function($user, $list) use ($table){ return $user['forbidden_abilities']->where('entity_type', $table)->whereNull('entity_id')		->whereIn('name', $list); }],
-			['specific_permissions',		'specific_minimum',				'specific',		'specific',				function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNotNull('entity_id')	->whereIn('name', $list); }],
-			['forbid_specific_permissions', 'forbid_specific_minimum',		'specific',		'forbid_specific',		function($user, $list) use ($table){ return $user['forbidden_abilities']->where('entity_type', $table)->whereNotNull('entity_id')	->whereIn('name', $list); }],
+			['general',				'general',		function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNull('entity_id')		->whereIn('name', $list); }],
+			['forbid_general',		'general',		function($user, $list) use ($table){ return $user['forbidden_abilities']->where('entity_type', $table)->whereNull('entity_id')		->whereIn('name', $list); }],
+			['specific',			'specific',		function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)->whereNotNull('entity_id')	->whereIn('name', $list); }],
+			['forbid_specific', 	'specific',		function($user, $list) use ($table){ return $user['forbidden_abilities']->where('entity_type', $table)->whereNotNull('entity_id')	->whereIn('name', $list); }],
 			
-			['anything_permissions',		'anything_minimum',				'anything',		'anything',				function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)								->where('name', '*'); }],
+			['anything',			'anything',		function($user, $list) use ($table){ return $user['abilities']			->where('entity_type', $table)								->where('name', '*'); }],
 			
 		];
+		
 		foreach($run as $param){
 			
-			if ( $this->checkModeFromOnly($only, $table, $param[0]) && $data[$param[0]] && $this->userCanBasic($this->target_authority, $data[$param[1]]) && $this->userCanBasic($this->current_authority, $data[$param[1]])){
+			$name = $param[0] . '_permissions';
+			$mode = $param[0];
+			$minimum = $param[0] . '_minimum';
+			$type = $param[1];
+			$closure = $param[2];
+			
+			if ( 
+				$data[ $name ] && 
+				$this->checkModeFromOnly($only, $table, $name) && 
+				$this->userCanBasic($this->target_authority, $data[$minimum]) && 
+				$this->userCanBasic($this->current_authority, $data[$minimum])
+			){
 				
-				$current_old = @$old[$table][$param[0]];
+				$current_old = $old[$table][$name] ?? [];
 				
-				$list = $this->getTableAbilities($table, $param[3] ); // List of abilities available for this table according to the bouncercontrol config
+				$list = $this->getTableAbilities($table, $mode ); // List of abilities available for this table according to the bouncercontrol config
 				$presets = $list ? $this->getTablePresets($list) : []; // bouncercontrol 'table_compound_abilities' fit with the abilities from list if you chose to impement them in your ui, such as checking a preset will auto check the abilities
-				$level = $data[ $param[1] ]; // each permission types minimum requirement for access as declared by bouncercontrol 'general_minimum' and simiar. You may use it in your ui to show if an ability is for anyone, or for admin only etc
+				$level = $data[ $minimum ]; // each permission types minimum requirement for access as declared by bouncercontrol 'general_minimum' and simiar. You may use it in your ui to show if an ability is for anyone, or for admin only etc
 				
 				// Get users current permissions based on collecton filter, and lastly make sure to only get those abilities as declared by $list
-				$permissions = $param[4]($this->target_permissions, $list);
+				$permissions = $closure($this->target_permissions, $list);
 				
-				if ($param[2] == 'special'){
+				if ($type == 'special'){
 					$permissions = [
-						'name' => $param[3],
+						'name' => $mode,
 						'checked' => $current_old['checked'] ?? $permissions->isNotEmpty(),
-						'disabled' => !$this->currentUserCan('__'.$param[3], $table),
+						'disabled' => !$this->currentUserCan('__'.$mode, $table),
 							'pivot_options' => $current_old['pivot_options'] ?? ($permissions->isNotEmpty() ? $permissions->first()->pivot->pivot_options : null),
 					];
 				}
-				else if ($param[2] == 'anything'){
+				else if ($type == 'anything'){
 					
 					$permissions = [
 						'name' => '*',
@@ -59,7 +73,7 @@ trait ProcessPermissions
 							'pivot_options' => $current_old['pivot_options'] ?? ($permissions->isNotEmpty() ? $permissions->first()->pivot->pivot_options : null),
 					];
 				}
-				else if ($param[2] == 'specific'){
+				else if ($type == 'specific'){
 							
 					$ids = !is_null($current_old) ? collect(array_keys($current_old)) : $permissions->pluck('entity_id')->unique();
 					$permissions = $ids->mapWithKeys(function($id) use ($permissions, $table, $list, $current_old){
@@ -89,7 +103,7 @@ trait ProcessPermissions
 						];
 					}, $list);
 				}
-				$permission[ $param[0] ] = compact('list', 'presets', 'permissions', 'level');
+				$permission[ $name ] = compact('list', 'presets', 'permissions', 'level');
 			}
 		}
 		
@@ -98,53 +112,97 @@ trait ProcessPermissions
 		
 	}
 	
+	private function getPermission($only = null, $old = []){
+		$group = [];
+		
+		$run = [
+			// 0 mode			// 1 get user abilities
+			['allow',			function($user, $list) { return $user['abilities']				->whereNull('entity_type')		->whereIn('name', $list); }],
+			['forbid',			function($user, $list) { return $user['forbidden_abilities']	->whereNull('entity_type')		->whereIn('name', $list); }],
+			
+		];
+		foreach($run as $param){
+			
+				$mode = $param[0];
+				$ability_closure = $param[1];
+				
+				$mode_old = $old[ $mode ] ?? [];
+				
+				$permission = [];
+				
+				$list = self::getAbilities( $mode, $this->target_type ); // List of abilities available according to the bouncercontrol config
+				$permissions = $ability_closure($this->target_permissions, $list);
+				$abilities_info = self::getAbilitiesInfo();
+				
+				
+				foreach($list as $ability){
+					$current_old = $mode_old[$ability] ?? [];
+					$current_permission = $permissions->where('name', $ability);
+					$level = $abilities_info[$ability]['minimum'] ?? null;
+					if ($this->userCanBasic($this->target_authority, $level)){
+						$permission[] = [
+							'name' => $ability,
+							'checked' => $current_old['checked'] ?? $current_permission->isNotEmpty(),
+							'disabled' => !$this->currentUserCan($ability),
+								'pivot_options' => $current_old['pivot_options'] ?? ($permissions->isNotEmpty() ? $permissions->first()->pivot->pivot_options : null),
+						];
+					}
+					
+				}
+				$group[ $mode ] = $permission;
+			
+		}
+		
+		
+		return $group;
+		
+	}
 	
 	
 	
 	protected function parseAbilities($table = null, $forbid = false, $data = [], $mode = 'general', bool $special_abilities = false, array $name_only = null){
+		// Filter user abilities for current 
+		$pipe = Clipboard::collectionPipe($table, true, null, $name_only, ($mode == 'anything') ? null : ['*'], true);
 		$target_authority_abilities = $forbid ? $this->target_permissions['forbidden_abilities'] : $this->target_permissions['abilities'];
+		$target_authority_abilities = $target_authority_abilities
+			->pipe($pipe)
+			->when($special_abilities, function($collection) use ($mode){
+				// If is parsing a special ability, only look for it
+				return $collection->whereIn('name', ['__'. $mode]);
+			});
+			
 		
-		$anything_mode = ($mode == 'anything');
-		$table_is_model = ($table instanceof Model);
+		if ($mode === 'simple'){
+			// In simple mode get levels as array of abilities
+			$abilities_info = self::getAbilitiesInfo();
+			$level = null;// force allowed
+			$levels = array_combine(array_keys($abilities_info), array_column($abilities_info, 'minimum'));
+		}else{
+			$minimum = (($forbid) ? 'forbid_' : '') . $mode . '_minimum';
+			$table_info = self::getTableInfo($table);
+			$level = @$table_info[$minimum];
+		}
 		
-		$target_authority_abilities = $target_authority_abilities->unless($table_is_model, function($collection) use ($table){
-			return $collection->where('entity_type', $table)->whereNull('entity_id');
-		})->when($table_is_model, function($collection) use ($table){
-			return $collection->where('entity_type', $table->getMorphClass());
-		})->when(($table_is_model && $table->exists), function($collection) use ($table){
-			return $collection->where('entity_id', $table->getKey());
-		})->when(($table_is_model && !$table->exists), function($collection) use ($table){
-			return $collection->whereNull('entity_id');
-		})->when($anything_mode, function($collection){
-			return $collection->whereIn('name', ['*']);
-		})->unless($anything_mode, function($collection){
-			return $collection->whereNotIn('name', ['*']);
-		})->filter(function($item) use ($special_abilities){
-			// Special abilities start with __
-			return (\Str::startsWith($item->name, '__') == $special_abilities);
-		})->when($special_abilities, function($collection) use ($mode){
-			// If is parsing a special ability, only look for it
-			return $collection->whereIn('name', ['__'. $mode]);
-		})->when(!is_null($name_only), function($collection) use ($name_only){
-			// To ensure only abilities declared can be removed
-			return $collection->whereIn('name', $name_only);
-		});
-		
-		$permissing_config = $mode . '_minimum';
-		if ($forbid) $permissing_config = 'forbid_' . $permissing_config;
-		// for now it should only be receiving instances, but could also be used for *
-		$morph_class = ($table instanceof Model) ? $table->getMorphClass() : $table;
-		$table_info = self::getTableInfo($morph_class);
-		
-		$level = @$table_info[$permissing_config];
 		$sync = [];
+		
 		if (!$this->userCanBasic($this->current_authority, $level)){
 			// Current user should't be able to modify this at all. Return null to leave it untouched
 			return null;
 		}
+		
 		if ($this->userCanBasic($this->target_authority, $level)){
 			foreach($data as $ability => $value){
-				if ($this->currentUserCan($ability, $table)){
+				if ($mode === 'simple'){
+					$current_level = $levels[$ability] ?? null;
+					// target user shouldn't have access to this ability, force 
+					if (!$this->userCanBasic($this->target_authority, $current_level)){
+						continue;
+					}
+				}
+				
+				if (
+					$this->currentUserCan($ability, $table)
+				){
 					if (@$value['checked'] == true){
 						// make change as current user can
 						$pivot = [];
@@ -156,6 +214,7 @@ trait ProcessPermissions
 					$sync[] = $ability;
 				}
 			}
+			
 			$deleting = $target_authority_abilities->whereNotIn('name', array_keys($data));
 			foreach($deleting as $delete){
 				if (!$this->currentUserCan($delete['name'], $table)){
@@ -170,9 +229,11 @@ trait ProcessPermissions
 		return $sync;
 		
 	}
+	
 	protected function processGeneral($table = null, $forbid = false, $data = [], array $name_only = null){
 		$table = $this->toTableInstance($table);
 		$sync = $this->parseAbilities( $table, $forbid, $data, 'general', false, $name_only );
+		
 		if (is_array($sync)){
 			$mode = $forbid ? 'forbiddenAbilities' : 'abilities';
 			// Using whereModelStrict with new instance to only sync items that are matching the model and have no entity_id
@@ -190,20 +251,14 @@ trait ProcessPermissions
 		// First find ids missing and add them back so they can be checked if ok to delete
 		$mode = $forbid ? 'forbiddenAbilities' : 'abilities';
 		$all_table = $this->toTableInstance($table);
-		$missing_user_abilities = collect([]);
-		if ($this->target_authority){
-			$function = $forbid ? 'getForbiddenAbilities' : 'getAbilities';
-			$missing_user_abilities = $this->target_authority->{$function}()
-			->where('entity_type', $all_table->getMorphClass())
-			->whereNotNull('entity_id')
+		
+		$pipe = Clipboard::collectionPipe($all_table, true, 'specific', $name_only, null, true);
+		$missing_user_abilities = $this->target_permissions[$forbid ? 'forbidden_abilities' : 'abilities']
+			->pipe($pipe)
 			->whereNotIn('entity_id', array_keys($data))
-			->when(is_array($name_only), function($collection) use ($name_only){
-				return $collection->whereIn('name', $name_only);
-			})
 			->pluck('entity_id')
 			->unique();
-			
-		}
+		
 		foreach($missing_user_abilities as $id){
 			$data[$id] = [];
 		}
@@ -258,11 +313,55 @@ trait ProcessPermissions
 		if (is_array($sync)){
 			\Bouncer::sync($this->target_authority)->whereModel($current_table)->whereCustom(function($query) use ($current_table){
 				$query->where($query->qualifyColumn('name'), '*');
-			})->abilities($sync);
+			})->abilities($sync, ['scope' => true]);
 		}
 		
 	}
 	
+	protected function processSimple($forbid, $data = [], $name_only = []){
+		$mode = $forbid ? 'forbiddenAbilities' : 'abilities';
+		$data = array_intersect_key($data, array_flip($name_only));
+		$sync = $this->parseAbilities( null, $forbid, $data, 'simple', false, $name_only);
+		if (is_array($sync)){
+			\Bouncer::sync($this->target_authority)->whereModelStrict(null)->$mode($sync, ['scope' => true]);
+		}
+	}
+	
+	
+	/**
+	 * Get simple abilities as declared in bouncercontrol config
+	 */
+	public static function getAbilitiesInfo(){
+		$only_options = [
+			'user' => true,
+			'role' => true,
+			'everyone' => true,
+		];
+		$restrictions = [
+			'minimum' => null
+		];
+		$types = [
+			'allow' => true,
+			'forbid' => true,
+		];
+		$default_options = $only_options + $restrictions + $types;
+		$abilities = self::optionsArray( config('bouncercontrol.abilities', []), $default_options );
+		
+		return $abilities;
+	}
+	
+	public static function getAbilities($mode = 'allow', $authority_type = 'user'){
+		$abilities = self::getAbilitiesInfo();
+		foreach($abilities as $key => $value){
+			if (@$value[$authority_type] == false){
+				unset( $abilities[$key] );
+			}
+			if (@$value[$mode] == false){
+				unset( $abilities[$key] );
+			}
+		}
+		return array_keys($abilities);
+	}
 	
 	
 }

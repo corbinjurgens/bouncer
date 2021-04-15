@@ -77,6 +77,11 @@ class CachedClipboard extends BaseClipboard implements Contracts\CachedClipboard
      */
     public function checkGetId(Model $authority, $ability, $model = null)
     {
+		// Check if the ability is a function ability, and pass it as that instead
+		if (in_array($ability, self::$function_abilities)){
+			return $this->processFunctionAbility($ability, $authority, $model);
+		}
+		
         $applicable = $this->compileAbilityIdentifiers($ability, $model);
 
         // We will first check if any of the applicable abilities have been forbidden.

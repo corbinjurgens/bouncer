@@ -216,7 +216,6 @@ trait AssociatesAbilities
 			$query = $this->getAbilityIdsAssociatedWithEveryone($ids, true);
 			$exists = $query->get();
 			$records = $this->toRecords($prepared_ids);
-			
 			foreach($records as $record){
 				if ( $find = $exists->firstWhere('ability_id', $record['ability_id']) ){
 					$find->fill($record);

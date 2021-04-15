@@ -33,7 +33,8 @@ trait DealsWithUsers
 	private $target_permissions;
 	
 	/**
-	 * Get permissions directly, not from getAbilities or getForbiddenAbilitis, to ensure we are only getting abilities directly on the authority
+	 * Get permissions directly, not from getAbilities or getForbiddenAbilitis,
+	 * to ensure we are only getting abilities directly on the authority
 	 * as opposed to on the user, role and everyone
 	 */
 	private function loadPermissions($authority = null){
@@ -53,7 +54,7 @@ trait DealsWithUsers
 			return $authority->getTable() == Models::table('roles') ? 'role' : 'user';
 		}else{
 			throw new InvalidArgumentException(
-				"Target user type not valid"
+				"User type not valid"
 			);
 		}
 	}
@@ -89,23 +90,25 @@ trait DealsWithUsers
 	/**
 	 * Permission checks
 	 */
-	protected function userCan($user, $ability, $table, $id = null){
+	protected function userCan($user, $ability, $table = null, $id = null){
 		$instance = $this->toTableInstance($table, $id);
 		return $user->can($ability, $instance) == true;
 	}
-	protected function currentUserCan($ability, $table, $id = null){
+	protected function currentUserCan($ability, $table = null, $id = null){
 		if ($this->strict_user_mode === false){
 			return True;
 		}
 		// Only run if set to check if current user has the right (so they dont give rights for things they dont have themselves etc)
 		return $this->userCan($this->current_authority, $ability, $table, $id);
 	}
-	protected function targetUserCan($ability, $table, $id = null){
+	protected function targetUserCan($ability, $table = null, $id = null){
 		return $this->userCan($this->target_authority, $ability, $table, $id);
 	}
+	
 	/**
 	 * Checks if according to the bouncercontrol config, the users admin level is even one 
-	 * That allows the permission types (ie, permissions, anything, forbid_permissions) at all
+	 * that allows the permission types (ie, permissions, anything, forbid_permissions) at all
+	 * By looking to $user->admin
 	 * Check auto passes if config minimum checks are null, or if authority admin passes null (eg if giving permissions to role)
 	 */
 	protected function userCanBasic($user, $level){
@@ -117,13 +120,6 @@ trait DealsWithUsers
 	}
 	
 	
-	/**
-	 * Deprecated
-	 */
-	public function getUserPermissions(){
-		$permissions = $this->target_authority->getAllAbilities();
-		return self::groupPermissions($permissions);
-	}
 	
 	
 	
