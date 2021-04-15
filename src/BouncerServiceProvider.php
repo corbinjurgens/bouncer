@@ -203,7 +203,7 @@ class BouncerServiceProvider extends ServiceProvider
     protected function mergeControlConfig()
     {
 
-        $stub = __DIR__.'/control/bouncercontrol.php';
+        $stub = __DIR__.'/Control/bouncercontrol.php';
 
         $target = 'bouncercontrol';
 
