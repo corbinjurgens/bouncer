@@ -7,7 +7,7 @@ This is a fork of bouncer made to add features that seem to be missing in most r
  - Based on who is currently editing an authorities abilities, limit what they can change based on what they themselves can do (ie. prevent a user from allowing another user to do something they cant, which would be useful in the case of admins that have different abilities)
  - Scope items based on what a user has access to by using Corbinjurgens\Bouncer\Database\Concerns\CanScope scopeWhereCan. [Untested and very messy code]
  - Pivot options. Up until now the only pivot column that mattered was 'forbidden' and 'scope'. Now upon allow/forbid you can declare pivot columns such as 'pivot_options', and any existing abilities will have their pivot updated. This also means getAbilities() function had to be updated to get the best matching pivot. Pivot columns are free to be customized, but they are inteded to be used for special abilities like 'claim' below
- - Special abilities (saved with "__" prefix) such as the "claim" [TODO] ability which allows a user to "create" an item, and upon creation, automatically apply a set of permissions to it (permissions are declared in the pivot "pivot options" json column as 'abilities' array)
+ - Special abilities (saved with "__" prefix) such as the "claim" ability which allows a user to "create" an item, and upon creation, automatically apply a set of permissions to it (permissions are declared in the pivot "pivot options" json column as 'abilities' array)
  - When syncing a users abilities, sync only a specific model (eg abilities for Posts and any post) or only a specific result (eg abilities for a specific post). [TODO allow syncing of the same ability name ie for all Posts abilities that have any specific id]
 
 
@@ -19,6 +19,25 @@ First, see bouncercontrol config file and edit your tables as shown in the confi
 
 ```
 php artisan vendor:publish --tag="bouncer.controlconfig"
+```
+
+## Example templates
+
+Two functions have been added to aid you in displaying example pages. To view properly you must be a logged in user, otherwise all abilities will be disabled and you wont be able to edit them. Set yourself as able to do anything via `\Bouncer::allow($user)->everything()` and maybe assign yourself some roles. You can only edit a users abilities or roles that you yourself have, so trying to edit your own permissions and roles will behave strangely. If you want to make use of the permisssions template, publish it with `php artisan vendor:publish --tag="bouncer.templates"`
+
+Add something like the following to your routes to quickly get an idea for how to display your permissions
+
+```php
+Route::get('/test', 					function(){
+	$authority = null;// Test permissions for everyone
+	$authority = App\Models\User::first();// Test permissions for a user
+	//$authority = \Corbinjurgens\Bouncer\Database\Models::role()->first();// Test permissions for a role
+	return \Bouncer::control()->for($authority)->formExample(route('test2'));// the formExample function inside control area returns views for you. Note this example doesn't support changing "as()", it will be curren logged in user
+
+})->name('test');
+
+// Use the formExamplePost function directly as follows. It will automatically 
+Route::post('/test2', 					[\Corbinjurgens\Bouncer\Control\GetPermissions::class, 'formExamplePost']	)->name('test2');
 ```
 
 ## Get form array output
@@ -195,6 +214,28 @@ Bouncer::control()->for($model)->updateAbilitiesRequest($permissions);
 If you used a prefix in your form be sure to pass inside that eg 
 ```
 Bouncer::control()->for($model)->updateAbilitiesRequest($request['permissions'] ?? []);
+```
+
+## Further
+
+There is a similar function to edit and update simple abilities, and roles.
+
+See
+
+```php
+$permissions = Bouncer::control()->for($model)->getPermissions();
+//...
+Bouncer::control()->for($model)->updatePermissions(request()->input('permissions'));
+
+```
+
+and 
+
+```php
+$roles = Bouncer::control()->for($model)->getRoles();
+//...
+Bouncer::control()->for($model)->updateRoles(request()->input('roles'));
+
 ```
 
 # Scope Items
@@ -408,4 +449,36 @@ Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(['claim', 'e
 Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(true)->abilities($abilities, ['scope' => true]);
 // Turn off special sync mode, any abilities that are in static $special_abilities will be ignored and not synced and any non-special abilities will be detatched
 Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(false)->abilities($abilities, ['scope' => true]); // Can also use null instead of false
+```
+
+# Claim ability
+
+Allows users to create an item, and upon creation automatically allow a set of abilities. For each table you want to support the claim ability, ensure it is set inside bouncercontrol.tables and set claim_permissions to true
+
+
+By giving a user the claim ability, for example in the following
+```php
+\Bouncer::allow($user)->setPivot(['pivot_options' => ['max' = 2, 'abilities' => ['edit']]])->to('__claim', Post::class);
+```
+and ensuring the Post class is using the trait Corbinjurgens\Bouncer\Database\Concerns\CanScope. The following behavour will be exhibeted.
+
+
+- Code checks if user can create a post. If user can expiliciy create, then nothing special happens. If user cannot create, it will then check if they have the 'claim' ability. If 'max' is set in the pivot as shown in the example, it will count the other post items the user has specific permissions for. If its over max, they cannot claim.
+- If they can claim, it will set a property on the model so that after the model is saved, it will give the user the abilities as set in the pivot_options. If abilities is not set, or is null, it will give the user all abilities as available in bouncercontrol for the Post table
+
+Be sure that you have a new model, check if user can create, and then if so edit and save the same model.
+
+Usage example
+
+```php
+
+$post = new Post();
+if (!auth()->user()->can('create', $post)){
+	abort(403);
+}
+// $post model now is primed to add permissions after creation.
+$post->title = 'Post Title';
+$post->body = 'Blah blah';
+$post->save();
+
 ```

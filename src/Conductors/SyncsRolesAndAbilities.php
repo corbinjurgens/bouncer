@@ -77,9 +77,8 @@ class SyncsRolesAndAbilities
     {
 		$associateClass = $options['forbidden'] ? ForbidsAbilities::class : GivesAbilities::class;
 		if ($options['scope']){
-			// TODO allow assoc array as currently its ability names as keys only
 			$abilityData = $this->getFullAbilities($abilities, $this->getScopeModel());
-			$this->syncClearAbilities( array_column($abilityData, 'id') , $options['forbidden']);
+			$this->syncClearAbilities( array_keys($abilityData) , $options['forbidden'], True);
 			$instance = new $associateClass($this->authority);
 			$this->passModelScope($instance);
 			$instance->associateAbilitiesDirectly($abilityData);
@@ -101,7 +100,7 @@ class SyncsRolesAndAbilities
      * @param  bool  $forbidden
      * @return void
      */
-    protected function syncClearAbilities($keys, $forbidden)
+    protected function syncClearAbilities($keys, $forbidden, $scope = false)
     {
 		
 		$associateClass = $forbidden ? ForbidsAbilities::class : GivesAbilities::class;
@@ -110,7 +109,11 @@ class SyncsRolesAndAbilities
 			$relation = $authority->abilities();
 			
 			$instance = new $associateClass($this->authority);
-			$this->passModelScope($instance);
+			
+			if ($scope){
+				$this->passModelScope($instance);
+			}
+			
 			$ids = $instance->getAssociatedAbilityQuery()
 				->whereNotIn($relation->getQualifiedRelatedKeyName(), $keys);
 				
@@ -122,7 +125,11 @@ class SyncsRolesAndAbilities
 			$relation->detach($ids);
 		}else{
 			$instance = new $associateClass();
-			$this->passModelScope($instance);
+			
+			if ($scope){
+				$this->passModelScope($instance);
+			}
+			
 			$query = $instance->getAbilityIdsAssociatedWithEveryoneQuery();
 				$query->whereNotIn('ability_id', $keys);
 				$query->delete();

@@ -25,7 +25,7 @@ trait AssociatesAbilities
     public function to($abilities, $model = null, array $attributes = [])
     {
 		if ($this->scoping_model){
-			 throw new InvalidArgumentException(
+			throw new InvalidArgumentException(
                 'You cannot use ' . __FUNCTION__ .' method when scoping a model'
             );
 		}
@@ -126,7 +126,7 @@ trait AssociatesAbilities
      */
     protected function associateAbilities(array $ids, Model $authority = null)
     {
-		$existing_ids = $this->getAssociatedAbilityIds($authority, $ids, true)->get();
+		$existing_ids = $this->getAssociatedAbilityIds($authority, $ids, true, false)->get();
         $ids = array_diff($ids, $existing_ids->pluck( is_null($authority) ? 'ability_id' : 'id')->all());
 		
         if (is_null($authority)) {
@@ -196,7 +196,6 @@ trait AssociatesAbilities
 		return $records;
 	}
 	
-	
 	/**
 	 * When entering an array of abilities already prepared, ie from syncAbilities()
 	 */
@@ -207,7 +206,8 @@ trait AssociatesAbilities
 		$attributes += is_null($authority) ? Models::scope()->getAttachAttributes() : Models::scope()->getAttachAttributes(get_class($authority));
 		$attributes += $this->getPivotAttributes();
 		
-		$ids = array_column($abilities, 'id');
+		$ids = array_keys($abilities);
+		
 		$prepared_ids = Helpers::toOptionArray(
 			array_combine( $ids, array_column($abilities, 'pivot')),
 			$attributes

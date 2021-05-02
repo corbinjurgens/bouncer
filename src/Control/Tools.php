@@ -1,5 +1,5 @@
 <?php
-// cj custom
+
 namespace Corbinjurgens\Bouncer\Control;
 use Cache;
 use Auth;

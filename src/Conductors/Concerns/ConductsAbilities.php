@@ -15,10 +15,12 @@ trait ConductsAbilities
 	 * To change the pivots attributes when attatching / syncing
 	 */
 	protected $pivot_attributes = null;
+	
 	public function setPivot(array $pivot_attributes = null){
 		$this->pivot_attributes = $pivot_attributes;
 		return $this;
 	}
+	
 	protected function getPivotAttributes(){
 		$pivot_attributes = [];
 		if (is_array($this->pivot_attributes)){

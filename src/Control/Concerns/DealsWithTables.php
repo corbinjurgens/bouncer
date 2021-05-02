@@ -106,7 +106,7 @@ trait DealsWithTables
 	 */
 	public function getTablePresets($list = []){
 		$prepared = [];
-		$presets = config('bouncercontrol.table_compound_abilities');
+		$presets = config('bouncercontrol.table_compound_abilities', []);
 		foreach($presets as $preset => $abilities){
 			$prepared[$preset] = array_intersect($abilities, $list);
 		}

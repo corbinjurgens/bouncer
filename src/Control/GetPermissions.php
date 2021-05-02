@@ -1,17 +1,18 @@
 <?php
-// cj custom
-namespace Corbinjurgens\Bouncer\Control;
 
+namespace Corbinjurgens\Bouncer\Control;
 
 use Corbinjurgens\Bouncer\Control as c;
 use Corbinjurgens\Bouncer\Database\Models;
-
+use Corbinjurgens\Bouncer\Database\Role;
 
 use Illuminate\Database\Eloquent\Model;
 
 class GetPermissions
 {
-	use Concerns\DealsWithUsers, Concerns\DealsWithTables, Concerns\ProcessPermissions;
+	use Concerns\DealsWithUsers;
+	use Concerns\DealsWithTables;
+	use Concerns\ProcessPermissions;
 	
 	
    	public function __construct($current_authority = null){
@@ -54,7 +55,7 @@ class GetPermissions
 						'create',
 						'edit',
 					],
-					...,
+					//...,
 				],
 				'permissions' => [
 					[
@@ -90,7 +91,7 @@ class GetPermissions
 						'create',
 						'edit',
 					],
-					...,
+					//...,
 				],
 				'permissions' => [
 					100 => [ // id of the item
@@ -129,13 +130,13 @@ class GetPermissions
 			],	
 			
 		],
-		...more tables,
+		//...more tables,
 	
 	]
 	 
 	 *
 	 */
-	public function getTablePermissions($get_old = true, $old = 'permissions')
+	public function getTablePermissions($get_old = true, $old = 'table_permissions')
 	{
 		$previous = [];
 		if ($get_old === true){
@@ -159,7 +160,7 @@ class GetPermissions
 	/**
 	 * Get simple permissions
 	 */ 
-	public function getPermissions($get_old = true, $old = 'simple_permissions'){
+	public function getPermissions($get_old = true, $old = 'permissions'){
 		$previous = [];
 		if ($get_old === true){
 			$previous = request()->old($old, []);
@@ -167,6 +168,34 @@ class GetPermissions
 		
 		return $this->getPermission(null, $previous);
 		
+	}
+	
+	public function getRoles($get_old = true, $old = 'roles'){
+		$previous = false;
+		if ($get_old === true){
+			$previous = request()->old($old, false);
+		}
+		
+		if (is_null($this->target_authority)){
+			throw new \Exception("You cannot use roles without an authority");
+		}
+		
+		$current_authority_effective_roles = $this->current_authority->getEffectiveRoles()->pluck('id')->all();
+		$target_authority_roles = $this->target_authority->roles->pluck('id')->all();
+		$all_roles = Models::role()->pluck('title', 'id')->all();
+		
+		$roles = [];
+		foreach($all_roles as $id => $title){
+			$role = [];
+			$role['name'] = $title;
+			$role['disabled'] = !in_array($id, $current_authority_effective_roles);
+			$role['checked'] = ($previous !== false)
+				? ( is_array($previous) ? in_array($id, $previous) : false )
+				: in_array($id, $target_authority_roles);
+			$roles[$id] = $role;
+		}
+		
+		return $roles;
 	}
 	
 	/**
@@ -203,7 +232,7 @@ class GetPermissions
 	 * you also use the same tablesOnly() selection to put it back to avoid clearning
 	 * a users entire permissions from the missing tables
 	 */
-	public function updateTablePermissionsRequest($request){
+	public function updateTablePermissions($request){
 		// In case all items from one section have been deleted and we need to add it back so it will be processed;
 		// And remove items that should not be allowed based on tablesOnly() settings
 		$compare = $this->getTablePermissions(false);
@@ -239,17 +268,12 @@ class GetPermissions
 			}
 			
 		}
-		if ($this->target_type == 'user'){
-			\Bouncer::refreshFor($this->target_authority);
-		}else{
-			\Bouncer::refresh();
-		}
 		
 	}
 	/**
 	 * Update simple permissions from request
 	 */
-	public function updatePermissionsRequest($request){
+	public function updatePermissions($request){
 		// In case all items from one section have been deleted and we need to add it back so it will be processed;
 		// And remove items that should not be allowed based on only() settings
 		$compare = $this->getPermissions(false);
@@ -268,16 +292,93 @@ class GetPermissions
 			$name_only = array_intersect(self::getAbilities($mode, $this->target_type), array_column($compare[$mode] ?? [], 'name'));
 			$this->processSimple($mode == 'forbid', $data, $name_only);
 		}
-			
+	}
+	
+	public function updateRoles($request){
+		$target_authority_roles = $this->target_authority->roles()->get();
+		
+		$current_user_roles = $this->current_authority->getEffectiveRoles();
+		
+		$result = [];
+		
+		foreach($request as $role_id){
+			if ($current_user_roles->where('id', $role_id)->first()){
+				// Current user can change
+				$result[] = $role_id;
+			}else if ($target_authority_roles->where('id', $role_id)->first()){
+				// Current user cannot change, and the user already had it, so put it back
+				$result[] = $role_id;
+			}
+		}
+		
+		$to_delete = $target_authority_roles->whereNotIn('id', $request)->pluck('id')->all();
+		foreach($to_delete as $role_id){
+			if (!$current_user_roles->where('id', $role_id)->first()){
+				// Current user cannot change, put it back
+				$result[] = $role_id;
+			}
+		}
+		
+		\Bouncer::sync($this->target_authority)->roles($result);
+		
+	}
+	
+	public function refresh(){
 		if ($this->target_type == 'user'){
 			\Bouncer::refreshFor($this->target_authority);
 		}else{
 			\Bouncer::refresh();
 		}
-		
 	}
 	
+	/**
+	 * Use and return this function inside a view controller. 
+	 * For example 
+	 * return \Bouncer::control()->for(User::first())->formExample( route('bouncer_form_post_example') );
+	 */
+	public function formExample(string $post_url = null){
+		$authority = $this->target_authority;
+		$mode = $this->target_type;
+		
+		$table_permissions = $this->getTablePermissions();
+		$permissions = $this->getPermissions();
+		
+		$roles = null;
+		
+		if ($mode == 'user'){
+			$roles = $this->getRoles();
+		}
+		
+		
+		return view('bouncer::example', compact('authority', 'table_permissions', 'permissions', 'roles', 'post_url' ,'mode'));
+	}
 	
+	/**
+	 * Use directly in routes to handle the submission from formExample()
+	 * Current user will always be Auth::user(), target user will be decided from the form
+	 */
+	public function formExamplePost(\Illuminate\Http\Request $request){
+		$form = $request->all();
+		$authority = null;
+		if ($form['mode'] == 'user'){
+			$authority = Models::user()->find($form['id']);
+		}else if ($form['mode'] == 'role'){
+			$authority = Models::role()->find($form['id']);
+		}
+		$this->loadCurrent();
+		$this->for($authority);
+		
+		$this->updateTablePermissions($form['table_permissions'] ?? []);
+		$this->updatePermissions($form['permissions'] ?? []);
+		
+		if ($form['mode'] == 'user'){
+			$this->updateRoles($form['roles'] ?? []);
+		}
+		
+		$this->refresh();
+		
+		return back();
+	}
 	
 	
 	

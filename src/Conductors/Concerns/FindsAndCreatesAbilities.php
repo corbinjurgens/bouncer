@@ -40,42 +40,57 @@ trait FindsAndCreatesAbilities
 
         return $this->getAbilityIdsFromArray($abilities, $attributes);
     }
+	
 	/**
 	 * Like getAbilityIds but keeps track of what you passed to it for later reference
-	 * Can only use ability name as key and array as value, or just ability name as value, mixing allowed. TODO This means right now you cant set same ability for different models 
-	 * Attributes and model has an actual function here, everything else is simply passed back
-	 * eg ['create' => ['attributes' => [], 'pivot' => [ 'pivot_options' => [...] ], ... other values], 'delete', 'edit'] // 'model' => Post::first() is possible but not recommended when syncing with scoped model of differnt table
-	 * All values passed will return back so you can know what options are mean for what abilty
+	 * Can accept abilities as indexed array of arrays with abiliy name as 'ability' key (recommended) eg [['ability' => 'create', 'attributes' => []...], ...]
+	 * OR associative array with ability name as key and array as value eg  ['create' => ['attributes' => []...], ...] Note this method will not allow you to pass multiple of the same ability for different models
+	 * OR index array with ability name as value eg ['create', ...]
+	 * OR a mixture of the above.
+	 * 
+	 * In the abilities array, 'ability', 'attributes' and 'model' have an actual function here, everything else is simply passed back
+	 * - 'attributes' used to query ability columns
+	 * - 'model' used to query ability by model
+	 * Both take preference over anything passed as function parameter ($attributes is merged, $model is overwritten)
 	 */
-	protected function getFullAbilities($abilities, $model = null, array $attributes = []){
+	protected function getFullAbilities(array $abilities = [], $model = null, array $attributes = []){
 		if (!is_array($abilities)){
 			$abilities = [$abilities];
 		}
-		$prepared_abilities = Helpers::toOptionArray($abilities, []);
+		
+		// Add empty pivot default, so that when using array_column() to get pivot it will get same amount of elemens
+		$prepared_abilities = Helpers::toOptionArray($abilities, ['pivot' => []]);
 		
 		$abilities = Collection::make($prepared_abilities);
 
         $models = Collection::make(is_array($model) ? $model : [$model]);
 
         return $abilities->map(function ($value, $ability) use ($models, $attributes) {
+			// If ability was passed as a key use it, otherwise look to array key
+			$ability = $value['ability'] ?? $ability;
+			
+			// If model was passed as a key use it, otherwise used $model parameter
 			$target_models = isset($value['model']) ? ( Collection::make(is_array($value['model']) ? $value['model'] : [$value['model']]) ) : $models;
-            return $target_models->map(function ($model) use ($value, $ability, $attributes) {
+           
+		   return $target_models->map(function ($model) use ($value, $ability, $attributes) {
+				// Merge attributes
 				$attributes = Helpers::combineArrays([], $attributes, @$value['attributes']);
+				
+				// Find ability
 				$getModel = (is_null($model)) ? $this->abilitiesByName($ability, $attributes)->first() : $this->getModelAbility($ability, $model, $attributes);
-               
 				
 				return [
-					'id' => $getModel->getKey(),
 					'ability' => $getModel,
-					'attributes' => $attributes,
-					'pivot' => Helpers::combineArrays([], /*['pivot_options' => null],*/ @$value['pivot']),
-					
+					'model' => $model,
+					'attributes' => $attributes
 				]
 				 + 
-				array_diff_key($value, array_flip(['ability', 'attributes', 'pivot']) );
+				array_diff_key($value, array_flip(['ability', 'model', 'attributes']) );
 				;
             });
-        })->collapse()->keyBy('id')->all();
+        })->collapse()->keyBy(function($item){
+			return $item['ability']->getKey();
+		})->all();
 	}
 
     /**

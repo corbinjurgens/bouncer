@@ -16,7 +16,7 @@ trait ProcessPermissions
 {
 	
 	
-	private function getTablePermission($table, $data, $only = null, $old = []){
+	protected function getTablePermission($table, $data, $only = null, $old = []){
 		$permission = [];
 		
 		$run = [
@@ -112,7 +112,7 @@ trait ProcessPermissions
 		
 	}
 	
-	private function getPermission($only = null, $old = []){
+	protected function getPermission($only = null, $old = []){
 		$group = [];
 		
 		$run = [

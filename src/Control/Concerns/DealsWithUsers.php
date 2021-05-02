@@ -11,7 +11,7 @@ use Corbinjurgens\Bouncer\Contracts\Clipboard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Container\Container;
 use InvalidArgumentException;
-
+use Auth;
 
 trait DealsWithUsers
 {
@@ -60,6 +60,7 @@ trait DealsWithUsers
 	}
 	
 	private function loadCurrent($authority = null){
+		$authority = $authority ?? Auth::user();
 		$this->current_authority = $this->processAuthority($authority);
 	}
 	private function loadTarget($authority = null){
@@ -91,6 +92,11 @@ trait DealsWithUsers
 	 * Permission checks
 	 */
 	protected function userCan($user, $ability, $table = null, $id = null){
+		if ($user === null){
+			// It is a question if I should instead check for abilities that everyone can do
+			// but for now I will assume everyone means everyone logged in
+			return false;
+		}
 		$instance = $this->toTableInstance($table, $id);
 		return $user->can($ability, $instance) == true;
 	}

@@ -43,6 +43,9 @@ class BouncerServiceProvider extends ServiceProvider
         $this->setUserModel();
 
         $this->registerAtGate();
+		
+		// Control
+		$this->registerTemplates();
 
         if ($this->app->runningInConsole()) {
             $this->publishMiddleware();
@@ -50,6 +53,7 @@ class BouncerServiceProvider extends ServiceProvider
 			
 			// Control
             $this->publishControlConfig();
+			$this->publishTemplates();
         }
     }
 	
@@ -144,6 +148,30 @@ class BouncerServiceProvider extends ServiceProvider
     protected function registerMorphs()
     {
         Models::updateMorphMap();
+    }
+
+    /**
+     * Register Bouncer Control example templates.
+     *
+     * @return void
+     */
+    protected function registerTemplates()
+    {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'bouncer');
+    }
+
+    /**
+     * Publish Bouncer Control example templates.
+     *
+     * @return void
+     */
+    protected function publishTemplates()
+    {
+        $stub = __DIR__.'/../resources/views';
+		
+		$target = resource_path('views/vendor/bouncer');
+		
+        $this->publishes([$stub => $target], 'bouncer.templates');
     }
 
     /**

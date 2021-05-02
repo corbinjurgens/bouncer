@@ -65,6 +65,7 @@ return [
 		'posts' => [
 			
 			'permissions' => True,
+			'claim_permissions' => True,// An example of allowing this table to use the claim special ability
 			'abilities' => [
 				'publish', // eg the user has ability to Set a post to public after a change 
 			],

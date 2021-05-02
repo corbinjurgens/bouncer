@@ -13,7 +13,7 @@ class Helpers
 {
 	/**
 	 * Mixed array to option eg [10, 11, 12 => ['expired' => True]]
-	 * If you always use key value format, give empty array
+	 * If you always use key value format, give empty array for value
 	 * Eg change from attach($roleIds, ['expires' => $expires]);
 	 * to attach([
 	 *		1 => ['expires' => $expires],

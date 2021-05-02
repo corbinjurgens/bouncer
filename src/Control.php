@@ -15,7 +15,7 @@ class Control
 	}
 	
 	public function for($user){
-		return ( new GetPermissions( auth()->user() ) )->for($user);
+		return ( new GetPermissions( Auth::user() ) )->for($user);
 	}
 	
 	
