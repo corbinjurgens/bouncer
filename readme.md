@@ -2,13 +2,13 @@
 
 This is a fork of bouncer made to add features that seem to be missing in most roles/permissions like packages. 
  - Declare each tables available abilities.
- - Based on declared table abilities, get array output that can be used to build html forms for a specific authority (user, role, or everyone)
+ - Based on declared table abilities, get array output that can be used to build html forms for a specific authority (user, role, or everyone) in order to easily create a user permissions manager page
  - If you follow a certain form name formula to build your form, you can input the form data as is and it will apply the abilities to the authority
  - Based on who is currently editing an authorities abilities, limit what they can change based on what they themselves can do (ie. prevent a user from allowing another user to do something they cant, which would be useful in the case of admins that have different abilities)
- - Scope items based on what a user has access to by using Corbinjurgens\Bouncer\Database\Concerns\CanScope scopeWhereCan. [Untested and very messy code]
+ - Scope items based on what a user has access to by using Corbinjurgens\Bouncer\Database\Concerns\CanScope scopeWhereCan. [TODO Add a cache for when scoping the same abilities]
  - Pivot options. Up until now the only pivot column that mattered was 'forbidden' and 'scope'. Now upon allow/forbid you can declare pivot columns such as 'pivot_options', and any existing abilities will have their pivot updated. This also means getAbilities() function had to be updated to get the best matching pivot. Pivot columns are free to be customized, but they are inteded to be used for special abilities like 'claim' below
  - Special abilities (saved with "__" prefix) such as the "claim" ability which allows a user to "create" an item, and upon creation, automatically apply a set of permissions to it (permissions are declared in the pivot "pivot options" json column as 'abilities' array)
- - When syncing a users abilities, sync only a specific model (eg abilities for Posts and any post) or only a specific result (eg abilities for a specific post). [TODO allow syncing of the same ability name ie for all Posts abilities that have any specific id]
+ - When syncing a users abilities, sync only a specific model (eg abilities for Posts and any post) or only a specific result (eg abilities for a specific post).
 
 
 # Sync with UI
@@ -47,7 +47,7 @@ Basic usage
 $user = User::first(); // Can also be a Role as Role::first() or 'admin' or null for everyone
 $form_data = Bouncer::control()->for($user)->getTablePermissions();
 ```
-For specific tables and permission types, use 'only' [IF YOU USE ONLY, BE SURE TO USE SAME ONLY LATER WHEN INPUTTING DATA TO updateAbilitiesRequest($form_data)]
+For specific tables and permission types, use 'only' [IF YOU USE ONLY, BE SURE TO USE SAME ONLY LATER WHEN INPUTTING DATA TO updateTablePermissions($form_data)]
 ```php
 $only_tables = ['posts', 'comments']; // or NULL or all tables
 $only_types = ['general_permissions', 'specific_permissions']; // see bouncercontrol config to types, or NULL for all types
@@ -85,7 +85,7 @@ The output array will look like the following
 						'create',
 						'edit',
 					],
-					...,
+					//...,
 				],
 				'permissions' => [
 					[
@@ -121,7 +121,7 @@ The output array will look like the following
 						'create',
 						'edit',
 					],
-					...,
+					//...,
 				],
 				'permissions' => [
 					100 => [ // id of the item
@@ -160,7 +160,7 @@ The output array will look like the following
 			],	
 			
 		],
-		...more tables,
+		//...more tables,
 	
 	]
 ```
@@ -197,30 +197,31 @@ If you used an only() when getting the output array, you must use the same only(
 						'checked' => bool,
 						'pivot_options' => []
 					],
-					...,
+					//...,
 				],
-				...,
+				//...,
 			]
 			'forbid_specific_permissions' => ...same as previous
 		],
-		...more tables,
+		//...more tables,
 	]
 ```
 
 Basic usage
 ```
-Bouncer::control()->for($model)->updateAbilitiesRequest($permissions);
+Bouncer::control()->for($model)->updateTablePermissions($permissions);
 ```
 If you used a prefix in your form be sure to pass inside that eg 
 ```
-Bouncer::control()->for($model)->updateAbilitiesRequest($request['permissions'] ?? []);
+Bouncer::control()->for($model)->updateTablePermissions($request['permissions'] ?? []);
 ```
 
 ## Further
 
 There is a similar function to edit and update simple abilities, and roles.
 
-See
+### Simple abilities
+
 
 ```php
 $permissions = Bouncer::control()->for($model)->getPermissions();
@@ -229,7 +230,31 @@ Bouncer::control()->for($model)->updatePermissions(request()->input('permissions
 
 ```
 
-and 
+See example template for getPermissions() output. 
+updatePermissions() expects an array like the following 
+
+```php
+
+[
+	'allow' => [
+		'ability_name' => [
+			'checked' => bool
+		],
+		//... more abilities
+	],
+	'forbid' => [
+		'ability_name' => [
+			'checked' => bool
+		],
+		//... more abilities
+	
+	]
+]
+
+```
+
+### Roles
+
 
 ```php
 $roles = Bouncer::control()->for($model)->getRoles();
@@ -237,6 +262,9 @@ $roles = Bouncer::control()->for($model)->getRoles();
 Bouncer::control()->for($model)->updateRoles(request()->input('roles'));
 
 ```
+
+See example template for getRoles() output. 
+updateRoles() expects an array of role ids eg `[1, 2, 3]`
 
 # Scope Items
 
@@ -445,9 +473,9 @@ $abilities = [
 ];
 // Sync specific special abilities only, in this case example3 is ignored. claim and example2 are added or updated
 Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(['claim', 'example2'])->abilities($abilities, ['scope' => true]);
-// Sync all available special abilities as defined in trait ScopesModel static $special_abilities
+// Sync all available special abilities as defined in trait ScopesModel static $special_abilities. Any Special abilities listed in $special_abilities but not given here will be detatcheds
 Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(true)->abilities($abilities, ['scope' => true]);
-// Turn off special sync mode, any abilities that are in static $special_abilities will be ignored and not synced and any non-special abilities will be detatched
+// Incorrect usage: turn off special sync mode. Special abilities are ignored ie. any abilities that are in static $special_abilities, and any non-special abilities will be detatched
 Bouncer::sync($user)->whereModelStrict( Post::class )->specialScope(false)->abilities($abilities, ['scope' => true]); // Can also use null instead of false
 ```
 
@@ -480,5 +508,6 @@ if (!auth()->user()->can('create', $post)){
 $post->title = 'Post Title';
 $post->body = 'Blah blah';
 $post->save();
+// User can now edit this post
 
 ```
