@@ -47,7 +47,7 @@ trait ProcessPermissions
 				$this->userCanBasic($this->current_authority, $data[$minimum])
 			){
 				
-				$current_old = $old[$table][$name] ?? [];
+				$current_old = $old[$table][$name] ?? null;
 				
 				$list = $this->getTableAbilities($table, $mode ); // List of abilities available for this table according to the bouncercontrol config
 				$presets = $list ? $this->getTablePresets($list) : []; // bouncercontrol 'table_compound_abilities' fit with the abilities from list if you chose to impement them in your ui, such as checking a preset will auto check the abilities
